@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+  <title>Admin</title>
+</head>
+<body>
+  <script type="text/javascript" src='https://cdn.jsdelivr.net/npm/sfmediastream@v1'></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io({
+      auth: {
+        login: 'anal',
+        password: 'oleg'
+      }
+    })
+
+    socket.on('connect', () => {
+      console.log('connect')
+
+      window.presenterInstance = new ScarletsMediaPresenter({
+  		  audio:{
+	        channelCount:2,
+	        sampleRate: 48000,
+	        echoCancellation: false
+		    }
+  		}, 1000)
+
+      let i = false
+      window.addEventListener('click', () => {
+        i = !i
+        if (i === true) {
+          presenterInstance.startRecording()
+        } else {
+          if(!presenterInstance) {
+            return
+          }
+
+      		presenterInstance.stopRecording()
+      		presenterInstance.onBufferProcess = () => {}
+      		presenterInstance = null
+
+      		socket.emit('microphoneStreamEnd')
+        }
+      })
+
+  		presenterInstance.onRecordingReady = function(packet){
+  		  socket.emit('microphoneHeader', packet)
+  		}
+
+  		presenterInstance.onBufferProcess = function(streamData){
+  			socket.emit('microphoneStream', streamData)
+  		}
+
+      socket.on('setAllStreamTracks', data => {
+        console.log('setAllStreamTracks', data)
+      })
+
+      socket.on('setStreamTrack', () => {
+        console.log('setStreamTrack')
+        socket.emit('getAllStreamTracks')
+      })
+
+      /*socket.on('setLoadTrack', data => {
+        console.log('setLoadTrack', data)
+
+        socket.emit('getPushTrack', data)
+
+        const img = document.createElement('img')
+        img.src = 'http://127.0.0.1:1111/getTrackPicture?name=' + data
+        document.body.appendChild(img)
+      })*/
+
+      /*socket.on('setPopTrack', data => {
+        console.log('getPopTrack', data)
+      })
+
+      socket.on('setPushTrack', data => {
+        console.log('getPushTrack', data)
+        socket.emit('getPopTrack', data)
+      })
+
+
+
+
+      socket.on('setAllTracksName', data => {
+        console.log('getAllTracksName', data)
+      })
+
+      socket.emit('getAllTracksName')
+      */
+      /*
+      socket.on('setAllTracksName', data => {
+        console.log('getAllTracksName', data)
+      })
+
+      socket.emit('getAllTracksName')
+
+
+
+      socket.on('setAllStreamTracks', data => {
+        console.log('getAllStreamTracks', data)
+      })
+
+      socket.emit('getAllStreamTracks')
+
+
+
+      socket.on('setTrackInfo', data => {
+        console.log('getTrackInfo', data)
+      })
+
+      socket.emit('getTrackInfo', '<name>')
+
+
+
+      socket.on('setLoadTrack', data => {
+        console.log('setLoadTrack', data)
+        const img = document.createElement('img')
+        img.src = 'http://127.0.0.1:1111/getTrackPicture?name=' + data
+        document.body.appendChild(img)
+      })
+
+
+
+      socket.on('setDeleteTrack', data => {
+        console.log('getDeleteTrack', data)
+      })
+
+      socket.emit('getDeleteTrack', '<name>')
+
+
+
+      socket.on('setPushTrack', data => {
+        console.log('getPushTrack', data)
+      })
+
+      socket.emit('getPushTrack', '<name>')
+
+
+
+      socket.on('setPopTrack', data => {
+        console.log('getPopTrack', data)
+      })
+
+      socket.emit('getPopTrack', '<name>')
+
+      */
+
+    })
+  </script>
+</body>
+</html>
