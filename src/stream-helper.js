@@ -2,10 +2,14 @@ const callback      = require('./utils/callback')
 const puppeteer     = require('puppeteer')
     , express       = require('express')
     , http          = require('http')
+    , path          = require('path')
     , IO            = require('socket.io')
     , cors          = require('cors')
     , sendChunk     = require('./utils/send-chunk')
     , noise         = require('./utils/noise')
+
+const sfmediastream$v1 = fs.readFileSync(path.join(__dirname, '/utils/sfmediastream@v1.js'), 'utf8')
+    , socket$v3_0_5 = fs.readFileSync(path.join(__dirname, '/utils/socket.io-3.0.5.js'), 'utf8')
 
 const StreamHelper = async ({ login, password, port }) => {
   let listeners = []
@@ -33,8 +37,8 @@ const StreamHelper = async ({ login, password, port }) => {
     browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
     const [page] = await browser.pages()
 
-    await page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/sfmediastream@v1' })
-    await page.addScriptTag({ url: 'https://cdn.socket.io/socket.io-3.0.5.js' })
+    await page.addScriptTag({ content: sfmediastream$v1 })
+    await page.addScriptTag({ content: socket$v3_0_5 })
 
     await page.evaluate(async ({ login, password, port, noise, isLauncher }) => {
       const socket = io(`http://127.0.0.1:${port}`, {

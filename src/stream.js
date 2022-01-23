@@ -112,9 +112,9 @@ const Stream = ({ isAutoStart }) => {
 
         const buffer = await fsPromise.readFile(track.path)
 
-        for (let i = 0; i < meta.format.duration; i += 0.5) {
+        for (let i = 0; i < meta.format.duration; i += 0.1) {
           const start = Math.ceil(i * bitrate)
-              , end = Math.ceil((i + 0.5) * bitrate)
+              , end = Math.ceil((i + 0.1) * bitrate)
 
           if (end === undefined) { break }
           const chunk = buffer.slice(start, end)
@@ -125,7 +125,7 @@ const Stream = ({ isAutoStart }) => {
             isStart = true
           }
 
-          await sleep(500)
+          await sleep(100)
         }
         end()
       })
