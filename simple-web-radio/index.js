@@ -30,6 +30,10 @@ RadioStation.create({
   app.get('/radio', (req, res) => {
     radio.addListener(req, res)
   })
+
+  setInterval(() => {
+    console.log('worked')
+  }, 1000)
 })
 
 app.use('/', express.static(__dirname+'/public'))
