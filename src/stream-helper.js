@@ -30,7 +30,7 @@ const StreamHelper = async ({ isStart }) => {
     listeners.push(res)
   }
 
-  const browser = await puppeteer.launch({ headless: false })
+  const browser = await puppeteer.launch({ args: ['--no-sandbox'] })
   const page = await browser.newPage()
 
   await page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/sfmediastream@v1' })
