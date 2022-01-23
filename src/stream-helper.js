@@ -1,18 +1,15 @@
-const callback = require('./utils/callback')
-const puppeteer = require('puppeteer')
+const callback      = require('./utils/callback')
+const puppeteer     = require('puppeteer')
     , express       = require('express')
     , http          = require('http')
     , IO            = require('socket.io')
     , cors          = require('cors')
     , sendChunk     = require('./utils/send-chunk')
+    , noise         = require('./utils/noise')
 
-const StreamHelper = async ({ isStart }) => {
-  const app = express()
-      , server = http.createServer(app)
-      , io = IO(server)
-
-  const listeners = []
-  let microphoneHeaders = null
+const StreamHelper = async ({ login, password, port }) => {
+  let listeners = []
+    , audioHeaders = null
 
   const addListener = (req, res) => {
     res.writeHead(200, {
@@ -23,52 +20,81 @@ const StreamHelper = async ({ isStart }) => {
       'Connection': 'keep-alive'
     })
 
-    if (microphoneHeaders) {
-      res.write(microphoneHeaders)
+    if (audioHeaders) {
+      res.write(audioHeaders)
     }
 
     listeners.push(res)
   }
 
-  const browser = await puppeteer.launch({ args: ['--no-sandbox'] })
-  const page = await browser.newPage()
+  let browser = null
 
-  await page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/sfmediastream@v1' })
-  await page.addScriptTag({ url: 'https://cdn.socket.io/socket.io-3.0.5.js' })
+  const start = async (isLauncher = false) => {
+    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
+    const [page] = await browser.pages()
 
-  setTimeout(() => {
-    console.log('start')
-    page.evaluate(async () => {
-      const socket = io('http://127.0.0.1:42777', {
-        transports : ['websocket']
+    await page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/sfmediastream@v1' })
+    await page.addScriptTag({ url: 'https://cdn.socket.io/socket.io-3.0.5.js' })
+
+    await page.evaluate(async ({ login, password, port, noise, isLauncher }) => {
+      const socket = io(`http://127.0.0.1:${port}`, {
+        transports : ['websocket'],
+        auth: {
+          login,
+          password
+        }
       })
 
       const context = new AudioContext()
-
-      const audio = new Audio()
-      audio.src = 'http://127.0.0.1:1111/radio'
-      audio.crossOrigin = 'anonymous'
-      audio.play()
-
-      await new Promise((res) => audio.oncanplaythrough = () => res())
-
-      const source = context.createMediaElementSource(audio)
-      //const streamSourse = context.createMediaStreamSource(stream)
-
       const destination = context.createMediaStreamDestination()
 
-      var gainNode = context.createGain();
-      gainNode.gain.value = 5
-      var gainNode1 = context.createGain();
-      gainNode1.gain.value = 1
+      const noiseAudio = new Audio()
+      noiseAudio.src = noise
+      noiseAudio.loop = true
+      await new Promise(load => noiseAudio.addEventListener('canplaythrough', load))
+      noiseAudio.play()
 
-      //streamSourse.connect(gainNode)
-      source.connect(gainNode1)
+      const noiseSourse = context.createMediaElementSource(noiseAudio)
 
-      gainNode.connect(destination)
-      gainNode1.connect(destination)
+      const streamAudio = new Audio()
+      streamAudio.src = isLauncher
+                          ? `http://127.0.0.1:${port}/launcher-stream`
+                          : `http://127.0.0.1:${port}/stream`
+      streamAudio.crossOrigin = 'anonymous'
+      streamAudio.autoplay = true
 
-      window.presenterMedia = new ScarletsMediaPresenter({
+      const events = ['error', 'emptied', 'abort']
+
+      events.map(event =>
+        streamAudio.addEventListener(event, () =>
+          streamAudio.load()
+        )
+      )
+
+      const streamSourse = context.createMediaElementSource(streamAudio)
+      const streamAnalyser = context.createAnalyser()
+
+      streamAnalyser.fftSize = 2048
+
+      let streamArray = new Uint8Array(streamAnalyser.frequencyBinCount)
+
+      const intervalId = setInterval(() => {
+        streamAnalyser.getByteTimeDomainData(streamArray)
+        const isPlayStream = !!streamArray.find(byte => byte !== 128)
+
+        if (isPlayStream) {
+          noiseAudio.pause()
+        } else {
+          noiseAudio.play()
+        }
+      }, 500)
+
+      streamSourse.connect(streamAnalyser)
+      streamAnalyser.connect(destination)
+
+      noiseSourse.connect(destination)
+
+      const presenterMedia = new ScarletsMediaPresenter({
         mediaStream: new MediaStream(destination.stream),
         audio: {
           channelCount: 2,
@@ -76,71 +102,47 @@ const StreamHelper = async ({ isStart }) => {
         }
       }, 1000)
 
-      presenterMedia.onRecordingReady = function(packet){
-        socket.emit('microphoneHeader', packet.data)
+      presenterMedia.onRecordingReady = packet => {
+        socket.emit('stream-helper-headers', packet.data)
       }
 
-      presenterMedia.onBufferProcess = function(packet){
-        socket.emit('microphone', packet[0])
+      presenterMedia.onBufferProcess = packet => {
+        socket.emit('stream-helper-audio', packet[0])
       }
 
       await presenterMedia.startRecording()
-    })
-  }, 10000)
-
-  //await browser.close()
-
-  const returned = {
-    addListener
+    }, { login, password, port, noise, isLauncher })
   }
 
-  const port = 42777
+  const stream = socket => {
+    socket.on('stream-helper-headers', chunk => {
+      audioHeaders = Buffer.from(chunk)
+    })
 
-  return new Promise(resolve => {
-    app.use(cors())
-
-    io.on('connection', socket => {
-      /*const {
-        login = '',
-        password = ''
-      } = socket.handshake.auth
-
-      const isLogin = login.toString() === _login.toString()
-          , isPassword = password.toString() === _password.toString()
-
-      if (
-        !(isLogin && isPassword)
-      ) {
-        socket.disconnect()
+    socket.on('stream-helper-audio', chunk => {
+      if (!audioHeaders) {
         return
-      }*/
-
-      //addAdmin(socket)
-      //disconnect(socket)
-      //allTracks(socket)
-      //allStream(socket)
-      //currentTrack(socket)
-
-      socket.on('microphoneHeader', chunk => {
-        microphoneHeaders = Buffer.from(chunk)
-      })
-
-      socket.on('microphone', chunk => {
-        if (!microphoneHeaders) {
-          return
-        }
-        console.log(listeners.length, chunk)
-        sendChunk(listeners, chunk)
-      })
+      }
+      sendChunk(listeners, chunk)
     })
+  }
 
-    server.listen(port, () => {
-      const host = `http://127.0.0.1:${port}`
-      resolve(returned)
-    })
+  const switchLauncher = async isLauncher => {
+    if (browser) {
+      await browser.close()
+      if (browser && browser.process() != null) {
+        browser.process().kill('SIGINT')
+      }
+      start(isLauncher)
+    }
+  }
 
-
-  })
+  return {
+    start,
+    switchLauncher,
+    stream,
+    addListener
+  }
 }
 
 module.exports = StreamHelper

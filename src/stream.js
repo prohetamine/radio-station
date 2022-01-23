@@ -10,12 +10,13 @@ const path              = require('path')
     , hash              = require('./utils/hash')
     , callback          = require('./utils/callback')
 
-const Stream = ({ isStart }) => {
+const Stream = ({ isAutoStart }) => {
   let listeners = []
     , allTrackCallbacks = []
     , trackIds = []
     , currentTrack = null
     , index = 0
+    , isStart = false
 
   const [onUse, usePush] = callback()
       , [onPush, pushPush] = callback()
@@ -23,6 +24,7 @@ const Stream = ({ isStart }) => {
       , [onFind, findPush] = callback()
       , [onUnload, unloadPush] = callback()
       , [onAllTracks, allTracksPush] = callback()
+      , [onStart, startPush] = callback()
 
   const push = async id => {
     if (id) {
@@ -117,6 +119,12 @@ const Stream = ({ isStart }) => {
           if (end === undefined) { break }
           const chunk = buffer.slice(start, end)
           sendChunk(listeners, chunk)
+
+          if (!isStart) {
+            onStart()
+            isStart = true
+          }
+
           await sleep(500)
         }
         end()
@@ -135,7 +143,7 @@ const Stream = ({ isStart }) => {
     await loop()
   }
 
-  isStart && loop()
+  isAutoStart && loop()
 
   return {
     push,
@@ -144,6 +152,7 @@ const Stream = ({ isStart }) => {
     all,
     current,
     start: () => loop(),
+    onStart: startPush,
     onUse: usePush,
     onPop: popPush,
     onPush: pushPush,

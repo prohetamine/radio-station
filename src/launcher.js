@@ -18,12 +18,8 @@ const Launcher = ({
   port,
   pathLauncher
 }) => {
-  const app = express()
-      , server = http.createServer(app)
-      , io = IO(server)
-
   let listeners = []
-    , microphoneHeaders = null
+    , audioHeaders = null
     , sockets = []
 
   const [onLoad, loadPush] = callback()
@@ -36,6 +32,7 @@ const Launcher = ({
       , [onInfo, infoPush] = callback()
       , [onPicture, picturePush] = callback()
       , [onListener, listenerPush] = callback()
+      , [onSwitchLauncher, switchLauncherPush] = callback()
 
   const addListener = (req, res) => {
     res.writeHead(200, {
@@ -46,9 +43,9 @@ const Launcher = ({
       'Connection': 'keep-alive'
     })
 
-    //if (microphoneHeaders) {
-    //  res.write(microphoneHeaders)
-    //}
+    if (audioHeaders) {
+      res.write(audioHeaders)
+    }
 
     listeners.push(res)
   }
@@ -59,6 +56,11 @@ const Launcher = ({
     })
 
   const addAdmin = socket => sockets.push(socket)
+
+  const switchLauncher = socket => {
+    socket.on('switch-launcher-off', () => onSwitchLauncher(false))
+    socket.on('switch-launcher-on', () => onSwitchLauncher(true))
+  }
 
   const disconnect = socket =>
     socket.on('disconnect', () =>
@@ -108,12 +110,12 @@ const Launcher = ({
   }
 
   const microphone = socket => {
-    socket.on('microphoneHeader', chunk => {
-      microphoneHeaders = Buffer.from(chunk)
+    socket.on('launcher-header', chunk => {
+      audioHeaders = Buffer.from(chunk)
     })
 
-    socket.on('microphone', chunk => {
-      if (!microphoneHeaders) {
+    socket.on('launcher-audio', chunk => {
+      if (!audioHeaders) {
         return
       }
       sendChunk(listeners, chunk)
@@ -255,119 +257,63 @@ const Launcher = ({
     res.end(NULL)
   }
 
-  return new Promise(resolve => {
-    app.use(cors())
-    app.use('/', express.static(pathLauncher))
-
-    io.on('connection', socket => {
-      const {
-        login = '',
-        password = ''
-      } = socket.handshake.auth
-
-      const isLogin = login.toString() === _login.toString()
-          , isPassword = password.toString() === _password.toString()
-
-      if (
-        !(isLogin && isPassword)
-      ) {
-        socket.disconnect()
-        return
-      }
-
-      addAdmin(socket)
-      disconnect(socket)
-      allTracks(socket)
-      allStream(socket)
-      currentTrack(socket)
-      microphone(socket)
-    })
-
-    app.get('/picture', picture)
-    app.get('/info', info)
-    app.get('/radio', radio)
-
-    app.use((req, res, next) => {
-      const {
-        password = '',
-        login = ''
-      } = req.query
-
-      const isLogin = login.toString() === _login.toString()
-          , isPassword = password.toString() === _password.toString()
-
-      if (
-        !(isLogin && isPassword)
-      ) {
-        res.end('')
-        return
-      }
-      next()
-    })
-
-    app.post('/push', push)
-    app.post('/pop', pop)
-    app.post('/load', load)
-    app.get('/unload', unload)
-
-    const returned = {
-      onLoad: loadPush,
-      onUnload: unloadPush,
-      onPush: pushPush,
-      onPop: popPush,
-      onAllStream: allStreamPush,
-      onAllTracks: allTracksPush,
-      onCurrentTrack: currentTrackPush,
-      onInfo: infoPush,
-      onPicture: picturePush,
-      onListener: listenerPush,
-      addListener,
-      airkiss: {
-        allStream: async () => {
-          try {
-            let tracks = await onAllStream()
-            tracks = await tracks[0]
-            if (tracks) {
-              socketEmit('onAllStream', tracks)
-            }
-          } catch (err) {}
-        },
-        currentTrack: async () => {
-          try {
-            let track = await onCurrentTrack()
-            track = await track[0]
-            if (track) {
-              socketEmit('onCurrentTrack', track)
-            }
-          } catch (err) {}
-        },
-        allTracks: async () => {
-          try {
-            let tracks = await onAllTracks()
-            tracks = await tracks[0]
-            if (tracks) {
-              socketEmit('onAllTracks', tracks)
-            }
-          } catch (err) {}
-        }
+  return {
+    addAdmin,
+    disconnect,
+    allTracks,
+    allStream,
+    currentTrack,
+    microphone,
+    picture,
+    info,
+    radio,
+    push,
+    pop,
+    load,
+    unload,
+    switchLauncher,
+    onLoad: loadPush,
+    onUnload: unloadPush,
+    onPush: pushPush,
+    onPop: popPush,
+    onAllStream: allStreamPush,
+    onAllTracks: allTracksPush,
+    onCurrentTrack: currentTrackPush,
+    onInfo: infoPush,
+    onPicture: picturePush,
+    onListener: listenerPush,
+    onSwitchLauncher: switchLauncherPush,
+    addListener,
+    airkiss: {
+      allStream: async () => {
+        try {
+          let tracks = await onAllStream()
+          tracks = await tracks[0]
+          if (tracks) {
+            socketEmit('onAllStream', tracks)
+          }
+        } catch (err) {}
+      },
+      currentTrack: async () => {
+        try {
+          let track = await onCurrentTrack()
+          track = await track[0]
+          if (track) {
+            socketEmit('onCurrentTrack', track)
+          }
+        } catch (err) {}
+      },
+      allTracks: async () => {
+        try {
+          let tracks = await onAllTracks()
+          tracks = await tracks[0]
+          if (tracks) {
+            socketEmit('onAllTracks', tracks)
+          }
+        } catch (err) {}
       }
     }
-
-    server.listen(port, () => {
-      const host = `http://127.0.0.1:${port}`
-      CFonts.say(`Launcher url: ${host}${' '.repeat(22-host.length)}|login: ${_login}${' '.repeat(28-_login.length)}|password: ${_password}${' '.repeat(26-_password.length)}`, {
-      	font: 'console',
-      	align: 'center',
-      	colors: ['yellow'],
-      	background: 'transparent',
-        space: true,
-      	lineHeight: 0,
-      	env: 'node'
-      })
-
-      resolve(returned)
-    })
-  })
+  }
 }
 
 module.exports = Launcher

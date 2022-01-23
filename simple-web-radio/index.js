@@ -16,7 +16,7 @@ RadioStation.create({
   login: 'localhost',
   password: 'hackme'
 }).then(radio => {
-  app.use(cors())
+  /*app.use(cors())
 
   app.get('/picture', async (req, res) => {
     radio.picture(req, res)
@@ -27,7 +27,7 @@ RadioStation.create({
       console.log('--> onUse', info)
       socket.emit('onUse', info)
     })
-  })
+  })*/
 
   app.get('/radio', (req, res) => {
     radio.addListener(req, res)
