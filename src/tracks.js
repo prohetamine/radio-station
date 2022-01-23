@@ -1,222 +1,319 @@
-const mm          = require('music-metadata')
-    , fsPromise   = require('fs-extra')
-    , { spawn }   = require('child_process')
-    , path        = require('path')
+const path              = require('path')
+    , mm                = require('music-metadata')
+    , fsPromise         = require('fs-extra')
+    , base64            = require('base-64')
+    , utf8              = require('utf8')
+    , pathToName        = require('./utils/path-to-name')
+    , convertingTrack   = require('./utils/converting-track')
+    , hash              = require('./utils/hash')
 
-class Tracks {
-  async initTracks () {
-    this.log('init')
+const Tracks = async ({ pathWorkDir }) => {
+  const pathWorkDirTracks = path.join(pathWorkDir, 'tracks')
+      , pathWorkDirTemp = path.join(pathWorkDir, 'temp')
+      , pathWorkDirData = path.join(pathWorkDir, 'data.json')
 
-    const isWorkDir = await fsPromise.exists(this.workDirTracks)
-        , isWorkDirTemp = await fsPromise.exists(this.workDirTemp)
-        , isWorkDirData = await fsPromise.exists(this.workDirData)
+  let trackList = {}
 
-    !isWorkDir && await fsPromise.mkdir(this.workDirTracks, { recursive: true })
-    !isWorkDirTemp && await fsPromise.mkdir(this.workDirTemp, { recursive: true })
+  try {
+    const text = await fsPromise.readFile(pathWorkDirData, 'utf8')
+        , bytes = base64.decode(text)
+        , json = utf8.decode(bytes)
 
-    if (isWorkDirData) {
-      try {
-        this.trackList = JSON.parse(
-          await fsPromise.readFile(this.workDirData, 'utf8')
-        )
-      } catch (e) {
-        this.trackList = []
-      }
-    } else {
-      this.trackList = []
-    }
+    trackList = JSON.parse(json)
+  } catch (e) {
+    const isPathWorkDir = await fsPromise.exists(pathWorkDirTracks)
+        , isWorkDirTemp = await fsPromise.exists(pathWorkDirTemp)
+        , isWorkDirData = await fsPromise.exists(pathWorkDirData)
+
+    !isPathWorkDir && await fsPromise.mkdir(pathWorkDirTracks, { recursive: true })
+    !isWorkDirTemp && await fsPromise.mkdir(pathWorkDirTemp, { recursive: true })
+
+    await fsPromise.writeFile(pathWorkDirData, JSON.stringify({}))
   }
 
-  safeFileMode (name, flag) {
-    this.log('safeFileMode')
-
-    if (flag !== undefined) {
-      this.__safeFileMode = {
-        [name]: flag
-      }
-    }
-
-    this.log(this.__safeFileMode)
-
-    return this.__safeFileMode[name]
-  }
-
-  findNameTrackByPath (path) {
-    this.log('findNameTrackByPath')
-
-    const name = path.match(/[^\/]+\..+$/)
+  const write = async () => {
     try {
-      return this.trackList.find(track => (name && name[0]) === track) || false
-    } catch (e) {
-      return false
+      const stringData = JSON.stringify(trackList)
+          , bytes = utf8.encode(stringData)
+          , text = base64.encode(bytes)
+
+      await fsPromise.writeFile(pathWorkDirData, text)
+    } catch (err) {
+      console.log('write', err)
+      console.log(trackList)
     }
   }
 
-  async findNameTrack (name) {
-    this.log('findNameTrack')
-
-    const isName = this.findNameTrackByPath(name)
-
-    try {
-      return (isName || this.trackList.find(track => track === name))
-    } catch (e) {
-      await this.initTracks()
-      return await this.findNameTrack()
+  trackList = new Proxy(trackList, {
+    async deleteProperty (target, prop) {
+      delete target[prop]
+      await write()
+    },
+    async set (target, prop, value) {
+      target[prop] = value
+      await write()
     }
-  }
+  })
 
-  async convertingTrack (oldTrack, newTrack, flag) {
-    this.log('convertingTrack')
+  const loadCallbacks = []
+      , unloadCallbacks = []
+      , allCallbacks = []
+      , infoCallbacks = []
+      , findCallbacks = []
+      , pictureCallbacks = []
 
-    const name = newTrack.match(/[^\/]+\..+$/)[0]
-    this.safeFileMode(name, true)
+  const onLoad = (...args) => loadCallbacks.map(callback => callback(...args))
+      , onUnload = (...args) => unloadCallbacks.map(callback => callback(...args))
+      , onAll = (...args) => allCallbacks.map(callback => callback(...args))
+      , onInfo = (...args) => infoCallbacks.map(callback => callback(...args))
+      , onFind = (...args) => findCallbacks.map(callback => callback(...args))
+      , onPicture = (...args) => pictureCallbacks.map(callback => callback(...args))
 
-    const isValid = await new Promise(validTrack => {
-      const ffmpeg = spawn('ffmpeg', ['-i', oldTrack, '-acodec', 'mp3', '-ar', '48000', '-ac', '2', newTrack])
-
-      ffmpeg.stdout.on('data', data => {
-        //this.log(`ounput: ${data}`)
-      })
-
-      ffmpeg.stderr.on('data', data => {
-        //this.log(`error: ${data}`)
-      })
-
-      ffmpeg.on('close', async code => {
-        //this.log(`close: ${code}`)
-        try {
-          const info = await this.getTrackInfo(newTrack, true)
-          validTrack(info?.format?.numberOfChannels === 2)
-        } catch (e) {
-          return validTrack(false)
+  const clean = async pathDir => {
+    const tracks = Object.values(trackList)
+    const tracksDir = await fsPromise.readdir(pathDir)
+    await Promise.all(
+      tracksDir.map(async track => {
+        if (!tracks.find(({ name }) => track === name)) {
+          return await fsPromise.rm(path.join(pathDir, track))
         }
       })
+    )
+  }
+
+  await clean(pathWorkDirTemp)
+  await clean(pathWorkDirTracks)
+
+  const find = data => {
+    const _name = pathToName(data)
+    const track = Object.values(trackList)
+                    .find(
+                      ({ path, parentPath, id, name }) =>
+                              path === data ||
+                        parentPath === data ||
+                                id === data ||
+                              name === data ||
+                              name === _name
+                    ) || null
+
+    onFind(track)
+    return track
+  }
+
+  const unload = async id => {
+    const track = trackList[id]
+
+    if (track) {
+      const path = track.path
+      delete trackList[id]
+
+      if (track) {
+        try {
+          await fsPromise.unlink(path)
+          onUnload(id)
+          return id
+        } catch (err) {
+          console.log('unload', err)
+          track[id] = track
+        }
+      }
+    }
+
+    onUnload(null)
+    return null
+  }
+
+  const load = async (...args) => {
+    const isPathFile = args.length === 1
+        , isBufferFile = args.length === 2
+
+    if (isPathFile) {
+      const parentPath = args[0]
+
+      const name = pathToName(parentPath)
+          , _path = path.join(pathWorkDirTracks, name)
+
+      const track = find(parentPath)
+
+      if (track && track.id) {
+        await onLoad(track.id)
+        return track.id
+      }
+
+      if (await fsPromise.exists(_path)) {
+        await fsPromise.unlink(_path)
+      }
+
+      const isOk = await convertingTrack(parentPath, _path)
+
+      if (isOk) {
+        const id = hash()
+
+        trackList[id] = {
+          id,
+          path: _path,
+          parentPath,
+          name
+        }
+
+        await onLoad(id)
+        return id
+      }
+
+      await onLoad(null)
+      return null
+    }
+
+    if (isBufferFile) {
+      let name = args[0]
+        , buffer = args[1]
+
+      return new Promise(async resolve => {
+        const tempPath = path.join(pathWorkDirTemp, name)
+        const _path = path.join(pathWorkDirTracks, name.replace(/\..+$/, '.mp3'))
+
+        const track = find(_path)
+
+        if (track && track.path) {
+          await onLoad(track.id)
+          resolve(track.id)
+          return
+        }
+
+        tempFile = await fsPromise.createWriteStream(tempPath)
+
+        buffer.forEach(chunk => tempFile.write(chunk))
+
+        tempFile.on('finish', async () => {
+          const isOk = await convertingTrack(tempPath, _path)
+
+          console.log(isOk)
+
+          if (isOk) {
+            const id = hash()
+
+            trackList[id] = { id, path: _path, name: name.replace(/\..+$/, '.mp3') }
+
+            await clean(pathWorkDirTemp)
+            await onLoad(id)
+            console.log(id)
+            resolve(id)
+            return
+          }
+
+          await clean(pathWorkDirTemp)
+          await onLoad(null)
+          resolve(null)
+        })
+
+        tempFile.on('error', async (err) => {
+          if (await fsPromise.exists(tempPath)) {
+            await fsPromise.unlink(tempPath)
+          }
+
+          await clean(pathWorkDirTemp)
+          await onLoad(null)
+          resolve(null)
+        })
+
+        tempFile.end()
+      })
+    }
+
+    console.log('Is not type file, one or two args')
+    return null
+  }
+
+  const loads = async pathDir => {
+    const paths = await fsPromise.readdir(pathDir)
+    const ids = []
+    for (let i = 0; i < filePaths.length; i++) {
+      const path = path.join(pathDir, paths[i])
+      const id = await load(path)
+      ids.push(id)
+    }
+
+    return ids
+  }
+
+  const all = () => {
+    const tracks = Object.values(trackList)
+    onAll(tracks)
+    return tracks
+  }
+
+  const info = async data => {
+    const track = find(data)
+
+    await onInfo({
+      common: {}
     })
-
-    if (!isValid) {
-      return false
+    return {
+      common: {}
     }
 
-    if (flag) {
-      if (this.trackList.length) {
-        !this.trackList.find(track => track === name) && this.trackList.push(name)
-      } else {
-        this.trackList.push(name)
-      }
-    }
 
-    await fsPromise.writeFile(path.join(this.workDirData), JSON.stringify(this.trackList))
-    this.safeFileMode(name, false)
-    return name
+    // if (track && track.path) {
+    //   try {
+    //     const data = await mm.parseFile(track.path)
+    //
+    //     delete data.common.picture
+    //     delete data.native
+    //     delete data.quality
+    //     return data
+    //
+    //     await onInfo(data)
+    //     return data
+    //   } catch (err) {
+    //     console.log('info', err)
+    //     delete trackList[track.id]
+    //   }
+    // }
+
+    await onInfo(null)
+    return null
   }
 
-  async convertingTracks () {
-    this.log('convertingTracks')
+  const picture = async data => {
+    const track = find(data)
 
-    const tracks = (await fsPromise.readdir(this.workDirTracks))
-      .filter(
-        _track =>
-          this.trackList.length === 0 && this.trackList.map(
-            track =>
-              track === _track
-          )
-      )
+    /*if (track && track.path) {
+      try {
+        const data = await mm.parseFile(track.path)
 
-    for (let i = 0; i < tracks.length; i++) {
-      const track = tracks[i]
-      const isTrack = await this.convertingTrack(
-        path.join(this.workDirTracks, track),
-        path.join(this.workDirTracks, track)
-      )
+        const buffer = data.common.picture[0].data
+            , contentType = data.common.picture[0].format
 
-      if (isTrack) {
-        !this.trackList.find(track => track === isTrack) && this.trackList.push(isTrack)
-      }
-    }
+        const picture = {
+          contentType,
+          contentLength: buffer.length,
+          buffer
+        }
+
+        await onPicture(picture)
+        return picture
+      } catch (e) {}
+    }*/
+
+    await onPicture(null)
+    return null
   }
 
-  async trackLoad (filePath) {
-    this.log('trackLoad')
-
-    const name = filePath.match(/[^\/]+\..+$/)[0]
-        , trackDirPath = path.join(this.workDirTracks, name)
-
-    if (!await fsPromise.exists(trackDirPath) && !this.safeFileMode(name)) {
-      const isTrack = await this.convertingTrack(filePath, trackDirPath, true)
-      if (isTrack) {
-        this.socketLoadTrack(name)
-      }
-      return isTrack
-    }
-
-    return false
-  }
-
-  async trackDelete (filePath) {
-    this.log('trackDelete')
-
-    const name = filePath.match(/[^\/]+\..+$/)[0]
-        , trackDirPath = path.join(this.workDirTracks, name)
-
-    if (await fsPromise.exists(trackDirPath) && !this.safeFileMode(name)) {
-      await fsPromise.rm(trackDirPath)
-
-      this.trackList = this.trackList.filter(track => track !== name)
-      this.socketDeleteTrack(name)
-      return true
-    }
-
-    return false
-  }
-
-  async getAllTracksName () {
-    this.log('getAllTracksName')
-
-    const tracks = await fsPromise.readdir(this.workDirTracks)
-    return tracks.filter(track => this.trackList.find(_track => track === _track))
-  }
-
-  async getTrackInfo (isName, isInformally) {
-    this.log('getTrackInfo')
-
-    const name = await this.findNameTrack(isName)
-
-    if (name || isInformally) {
-      const trackDirPath = isInformally
-                            ? isName
-                            : path.join(this.workDirTracks, name)
-
-      if (await fsPromise.exists(trackDirPath)) {
-        return await mm.parseFile(trackDirPath).then(data => {
-          delete data.common.picture
-          delete data.native
-          delete data.quality
-          return data
-        })
-      }
-    }
-
-    return false
-  }
-
-  async getTrackPicture (isName) {
-    this.log('getTrackPicture')
-    const name = await this.findNameTrack(isName)
-
-    if (name) {
-      const trackDirPath = path.join(this.workDirTracks, name)
-
-      if (await fsPromise.exists(trackDirPath)) {
-        return mm.parseFile(trackDirPath).then(data => {
-          try {
-            const buffer = data.common.picture[0].data
-            return `data:${ContentType};base64,${new Buffer(data).toString('base64')}`
-          } catch (e) {}
-        })
-      }
-    }
-
-    return false
+  return {
+    path: pathWorkDirTracks,
+    load,
+    loads,
+    unload,
+    all,
+    find,
+    info,
+    picture,
+    onLoad: callback => loadCallbacks.push(callback),
+    onUnload: callback => unloadCallbacks.push(callback),
+    onAll: callback => allCallbacks.push(callback),
+    onFind: callback => findCallbacks.push(callback),
+    onInfo: callback => infoCallbacks.push(callback),
+    onPicture: callback => pictureCallbacks.push(callback)
   }
 }
 

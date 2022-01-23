@@ -1,103 +1,167 @@
-const mm                  = require('music-metadata')
-    , fs                  = require('fs')
-    , fsPromise           = require('fs-extra')
-    , Throttle            = require('throttle')
-    , { spawn }           = require('child_process')
-    , sleep               = require('sleep-promise')
-    , moment              = require('moment')
-    , path                = require('path')
-    , cors                = require('cors')
-    , md5                 = () => require('md5')(Math.random())
+const path            = require('path')
+    , CFonts          = require('cfonts')
+    , sleep           = require('sleep-promise')
+    , Tracks          = require('./tracks')
+    , Stream          = require('./stream')
+    , StreamHelper    = require('./stream-helper')
+    , Launcher        = require('./launcher')
 
-const Launcher = require('./launcher')
+const defaultCreateArgs = {
+  pathWorkDir: path.join(__dirname, 'station'),
+  pathLauncher: path.join(__dirname, 'public'),
+  port: null,
+  login: null,
+  password: null
+}
 
-class RadioStation extends Launcher {
-  constructor (data) {
-    super(data)
-    const {
-      workDir = path.join(__dirname, 'radio-station'),
-      launcher = path.join(__dirname, 'public'),
-      login = null,
-      password = null,
-      port = null,
-      debug = false
-    } = data
+const defaultOnUseArgs = {
+  isSafe: true
+}
 
-    this.workDir = workDir
-    this.launcher = launcher
-    this.login = login
-    this.password = password
-    this.port = port
-    this.debug = debug
+const create = async ({
+  pathWorkDir = defaultCreateArgs.pathWorkDir,
+  pathLauncher = defaultCreateArgs.pathLauncher,
+  port = null,
+  login = null,
+  password = null,
+  isStart = true,
+  puppeteer = {}
+} = defaultCreateArgs) => {
+  console.log('')
+  console.log('')
+  CFonts.say('Radio|Station', {
+    font: 'simple',
+    align: 'center',
+    colors: ['yellow'],
+    background: 'transparent',
+    letterSpacing: 1,
+    space: false,
+    env: 'node',
+  })
+
+  const isLauncher = !!(port && login && password)
+  let launcher = null
+
+  if (isLauncher) {
+    launcher = await Launcher({ pathLauncher, login, password, port })
   }
 
-  log (...args) {
-    this.debug && console.log(...args)
+  const tracks = await Tracks({ pathWorkDir })
+      , stream = Stream({ isStart })
+      , streamHelper = await StreamHelper({ /* puppeteer */ })
+
+  if (isLauncher) {
+    launcher.onLoad(tracks.load)
+    launcher.onUnload(tracks.unload)
+    launcher.onAllTracks(tracks.all)
+    launcher.onInfo(tracks.info)
+    launcher.onPicture(tracks.picture)
+    launcher.onAllStream(stream.all)
+    launcher.onCurrentTrack(stream.current)
+    tracks.onLoad(launcher.airkiss.allTracks)
+    tracks.onUnload(launcher.airkiss.allTracks)
+    stream.onUse(launcher.airkiss.currentTrack)
+    stream.onUse(launcher.airkiss.allStream)
+    stream.onUnload(tracks.unload)
+    stream.onPop(launcher.airkiss.allStream)
+    stream.onPush(launcher.airkiss.allStream)
+    launcher.onListener(stream.addListener)
+    launcher.onPush(stream.push)
+    launcher.onPop(stream.pop)
   }
 
-  async start () {
-    this.log('start')
+  stream.onAllTracks(tracks.all)
+  stream.onFind(tracks.find)
 
-    this.listeners = []
-    this.index = 0
-    this.tracks = []
-    this.pathTrack = ''
-    this.workDirTracks = path.join(this.workDir, 'tracks')
-    this.workDirTemp = path.join(this.workDir, 'temp')
-    this.workDirData = path.join(this.workDir, 'data.json')
-    this.__safeFileMode = {}
-    this.isReady = true
-    this.sockets = []
+  /*const addListener = (req, res) =>
+                          isLauncher
+                            ? launcher.addListener(req, res)
+                            : stream.addListener(req, res)*/
 
-    await this.initTracks()
-    await this.convertingTracks()
-    this.loop()
-
-    if (this.adminMode) {
-      return await this.initLauncher()
+  const picture = async (req, res) => {
+    const { id } = req.query
+    if (id) {
+      const picture = await tracks.picture(id)
+      if (picture) {
+        res.writeHead(200, {
+          'Content-Type': picture.contentType,
+          'Content-Length': picture.contentLength,
+          'Cache-Control': 'max-age=31536000'
+        })
+        res.end(picture.buffer)
+        return
+      }
     }
+    res.end('')
   }
 
-  ready () {
-    return new Promise(res => {
-      const timeId = setInterval(() => {
-        if (this.isReady) {
-          clearInterval(timeId)
-          res()
-        }
-      }, 1000)
+  const useWrapper = async (isSafe) => {
+    const current = stream.current()
+    if (current) {
+      let info = await tracks.info(current.id)
+      info = {
+        ...info,
+        ...current
+      }
+
+      if (isSafe) {
+        delete info.path
+        delete info.parentPath
+      }
+
+      return info
+    }
+    return null
+  }
+
+  const onUse = async (callback, { isSafe = defaultOnUseArgs.isSafe } = defaultOnUseArgs) => {
+    stream.onUse(async (_, use) => {
+      const info = await useWrapper(isSafe)
+      if (info) {
+        callback(info)
+      }
     })
-  }
 
-  async startLauncher (data) {
-    const {
-      port = this.port,
-      password = this.password,
-      login = this.login,
-      launcher = this.launcher
-    } = data
-
-    this.login = login
-    this.password = password
-    this.port = port
-    this.launcher = launcher
-
-    this.login && this.password && this.port
-      ? this.adminMode = true
-      : this.adminMode = false
-
-    if (this.adminMode) {
-      return await this.initLauncher()
+    for (;;) {
+      const info = await useWrapper(isSafe)
+      if (info) {
+        callback(info)
+        break
+      }
+      await sleep(3000)
     }
   }
 
-  onListen (url) {
-    this.log(`
-      ----------------------------
-       ${url}
-      ----------------------------
-    `)
+  return {
+    track: {
+      load: tracks.load,
+      loads: tracks.loads,
+      unload: tracks.unload,
+      all: tracks.all,
+      find: tracks.find,
+      info: tracks.info,
+      picture: tracks.picture,
+      onLoad: tracks.onLoad,
+    },
+    stream: {
+      start: stream.start,
+      pop: stream.pop,
+      push: stream.push,
+      current: stream.current,
+      all: stream.all,
+      onPush: stream.onPush,
+      onPop: stream.onPop,
+      onUse: stream.onUse
+    },
+    addListener: streamHelper.addListener,
+    picture,
+    onUse,
+    source: {
+      tracks,
+      stream,
+      launcher
+    }
   }
 }
 
-module.exports = RadioStation
+module.exports = { create }

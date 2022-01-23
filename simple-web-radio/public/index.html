@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+  <title>Admin</title>
+</head>
+<body>
+  <script type="text/javascript" src='https://cdn.jsdelivr.net/npm/sfmediastream@v1'></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://unpkg.com/mp3tag.js/dist/mp3tag.min.js"></script>
+  <div id='info'></div>
+  <img id='picture' alt="">
+  <canvas id='canvas'></canvas>
+  <script>
+    window.socket = io('http://127.0.0.1:1111', {
+      transports : ['websocket'],
+      auth: {
+        login: 'localhost',
+        password: 'hackme'
+      }
+    })
+
+    ;(async () => {
+      console.log('wait click')
+      await new Promise(res => window.addEventListener('click', res))
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+
+      const context = new AudioContext()
+
+      window.audio = new Audio()
+      audio.src = 'http://localhost:1111/radio'
+      audio.crossOrigin = "anonymous"
+      audio.play()
+
+      await new Promise((res) => audio.oncanplaythrough = () => res())
+
+      const source = context.createMediaElementSource(audio)
+      const streamSourse = context.createMediaStreamSource(stream)
+
+      const destination = context.createMediaStreamDestination()
+
+      var gainNode = context.createGain();
+      gainNode.gain.value = 5
+      var gainNode1 = context.createGain();
+      gainNode1.gain.value = 1
+
+      streamSourse.connect(gainNode)
+      source.connect(gainNode1)
+
+      gainNode.connect(destination)
+      gainNode1.connect(destination)
+
+      window.presenterMedia = new ScarletsMediaPresenter({
+        mediaStream: new MediaStream(destination.stream),
+        audio: {
+          channelCount: 1,
+          echoCancellation: false
+        }
+      }, 100)
+
+      presenterMedia.onRecordingReady = function(packet){
+        socket.emit('microphoneHeader', packet.data)
+      }
+
+      presenterMedia.onBufferProcess = function(packet){
+        socket.emit('microphone', packet[0])
+      }
+
+      await presenterMedia.startRecording()
+    })()
+
+  </script>
+</body>
+</html>

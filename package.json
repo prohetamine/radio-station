@@ -4,7 +4,8 @@
   "description": "A free radio station on node js with a simple setup and the ability to conduct live broadcasts on the site 🎙 📡",
   "main": "src/index.js",
   "scripts": {
-    "test": "node test/index.js"
+    "test": "node test/index.js",
+    "simple-web-radio": "node simple-web-radio/index.js"
   },
   "repository": {
     "type": "git",
@@ -28,14 +29,25 @@
   },
   "homepage": "https://github.com/prohetamine/radio-station#readme",
   "dependencies": {
+    "accurate-interval": "^1.0.9",
+    "base-64": "^1.0.0",
+    "base64-js": "^1.5.1",
+    "cfonts": "^2.10.0",
     "child-process-promise": "^2.2.1",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "fs-extra": "^10.0.0",
+    "json-fixer": "^1.6.13",
+    "md5": "^2.3.0",
     "moment": "^2.29.1",
+    "mp3-header": "^0.1.4",
+    "mp3-to-aac": "^1.0.1",
     "music-metadata": "^7.11.6",
+    "puppeteer": "^13.1.1",
+    "sleep": "^6.3.0",
     "sleep-promise": "^9.1.0",
     "socket.io": "^4.4.1",
-    "throttle": "^1.0.3"
+    "throttle": "^1.0.3",
+    "utf8": "^3.0.0"
   }
 }

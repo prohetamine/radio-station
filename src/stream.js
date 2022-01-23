@@ -1,245 +1,155 @@
-const mm        = require('music-metadata')
-    , fs        = require('fs')
-    , fsPromise = require('fs-extra')
-    , Throttle  = require('throttle')
-    , sleep     = require('sleep-promise')
-    , path      = require('path')
-    , md5       = () => require('md5')(Math.random())
+const path              = require('path')
+    , sleep             = require('sleep-promise')
+    , mm                = require('music-metadata')
+    , Throttle          = require('throttle')
+    , fsPromise         = require('fs-extra')
+    , sendChunk         = require('./utils/send-chunk')
+    , arrayRandom       = require('./utils/array-random')
+    , pathToName        = require('./utils/path-to-name')
+    , convertingTrack   = require('./utils/converting-track')
+    , hash              = require('./utils/hash')
+    , callback          = require('./utils/callback')
 
-const Tracks = require('./tracks')
+const Stream = ({ isStart }) => {
+  let listeners = []
+    , allTrackCallbacks = []
+    , trackIds = []
+    , currentTrack = null
+    , index = 0
 
-class Stream extends Tracks {
-  constructor (data) {
-    super(data)
+  const [onUse, usePush] = callback()
+      , [onPush, pushPush] = callback()
+      , [onPop, popPush] = callback()
+      , [onFind, findPush] = callback()
+      , [onUnload, unloadPush] = callback()
+      , [onAllTracks, allTracksPush] = callback()
+
+  const push = async id => {
+    if (id) {
+      const track = onFind(id)[0]
+      const streamId = hash()
+      trackIds.push({ ...track, streamId, type: 'file' })
+      onPush(streamId)
+      return streamId
+    } else {
+      onPush(null)
+      return null
+    }
   }
 
-  addListener (client) {
-    this.log('addListener')
-    client.writeHead(200, {
+  const pop = id => {
+    const trackIdsFilter = trackIds.filter(({ streamId }, _index) => !(streamId === id && _index > index))
+    isDelete = JSON.stringify(trackIds) !== JSON.stringify(trackIdsFilter)
+    trackIds = trackIdsFilter
+    onPop(id)
+    return isDelete
+  }
+
+  const addListener = (req, res) => {
+    res.writeHead(200, {
       'Cache-Control': 'no-store, no-cache, must-revalidate',
       'Content-Type': 'audio/mpeg',
       'Transfer-Encoding': 'chunked',
+      'Cache-Control': 'no-cache, no-store',
       'Connection': 'keep-alive'
     })
 
-    this.listeners.push(client)
+    listeners.push(res)
   }
 
-  voice (duration) {
-    return ({
-      type: 'voice',
-      name: `${md5()}.mp3`,
-      id: md5(),
-      duration: '00:00:00'
-    })
-  }
+  const all = () => trackIds
+  const current = () => currentTrack
 
-  file (name) {
-    return ({
-      type: 'file',
-      name,
-      id: md5()
-    })
-  }
-
-  random () {
-    return ({
-      type: 'random'
-    })
-  }
-
-  send (chunk) {
-    // this.log('send')
-
-    this.listeners.forEach(
-      client =>
-        client.write(chunk)
-    )
-  }
-
-  async loop () {
-    this.log('loop')
-
-    if (!this.tracks[this.index]) {
-      this.tracks.push(this.random())
+  const loop = async () => {
+    if (!trackIds[index]) {
+      trackIds.push({ type: 'random' })
     }
 
-    const track = this.tracks[this.index]
+    main: while (true) {
+      let track = null
 
-    while (true) {
-      this.log('>>>>>>>>', this.index, track.type)
+      isExist: while (true) {
+        let tracks = onAllTracks()
 
-      if (track.type !== 'random') {
-        this.pathTrack = track.type === 'voice'
-                            ? path.join(this.workDirTemp, track.name)
-                            : path.join(this.workDirTracks, track.name)
-
-        this.safeFileMode(track.name, true)
-      } else {
-        let tracks = []
-
-        while (true) {
-          tracks = await this.getAllTracksName()
-          if (tracks.length !== 0) {
-            break
-          }
-          await sleep(3000)
+        if (!(tracks && tracks[0])) {
+          await sleep(2000)
+          continue isExist
         }
 
-        track.name = tracks[parseInt(Math.random() * tracks.length)]
+        tracks = tracks[0]
 
-        if (this.safeFileMode(track.name)) {
-          await sleep(3000)
-          break
+        const isRandom = trackIds[index].type === 'random'
+
+        track = isRandom
+                    ? arrayRandom(tracks)
+                    : tracks.find(({ id }) => id == trackIds[index].id) || null
+
+        track = trackIds[index] = {
+          ...track,
+          type: trackIds[index].type
         }
 
-        this.pathTrack = path.join(this.workDirTracks, track.name)
-        this.safeFileMode(track.name, true)
+        if (!track.path && track.type !== 'random') {
+          trackIds[index].type = 'error'
+          break main
+        }
+
+        if (track.path) {
+          break isExist
+        }
+        await sleep(2000)
       }
+
+      currentTrack = trackIds[index]
+      onUse(index, trackIds[index])
 
       await new Promise(async end => {
-        const file = await fsPromise.stat(this.pathTrack)
-            , meta = await mm.parseFile(this.pathTrack)
+        const file = await fsPromise.stat(track.path)
+            , meta = await mm.parseFile(track.path)
             , bitrate = Math.ceil(file.size / meta.format.duration)
-            , throttle = new Throttle(bitrate)
 
-        const streamTrack = fs.createReadStream(this.pathTrack)
-        this.socketSetStreamTracks()
-        this.isReady = true
-        streamTrack.pipe(throttle)
-          .on('data', chunk =>
-            this.send(chunk)
-          )
-          .on('end', async () => {
-            this.safeFileMode(track.name, false)
-            if (track.type === 'voice') {
-              await fsPromise.unlink(this.pathTrack)
-            }
-            end()
-          })
+        const buffer = await fsPromise.readFile(track.path)
+
+        for (let i = 0; i < meta.format.duration; i += 0.5) {
+          const start = Math.ceil(i * bitrate)
+              , end = Math.ceil((i + 0.5) * bitrate)
+
+          if (end === undefined) { break }
+          const chunk = buffer.slice(start, end)
+          sendChunk(listeners, chunk)
+          await sleep(500)
+        }
+        end()
       })
 
-      if (track.type !== 'random') {
-        break
+      if (trackIds[index].type !== 'random') {
+        break main
       } else {
-        if (this.tracks.slice(-1)[0].type !== 'random') {
-          break
+        if (trackIds.slice(-1)[0].type !== 'random') {
+          break main
         }
       }
     }
 
-    this.index++
-    await this.loop()
+    index++
+    await loop()
   }
 
-  async pushTrack (isName) {
-    this.log('pushTrack')
+  isStart && loop()
 
-    const name = await this.findNameTrack(isName)
-    if (name) {
-      this.tracks.push(this.file(name))
-      this.socketSetStreamTracks()
-    }
-    return name
-  }
-
-  async popTrack (isName) {
-    this.log('popTrack')
-
-    const id = isName
-    const name = await findNameTrack(isName)
-
-    if (id) {
-      const filteredTracks = this.tracks
-                                    .filter(
-                                      async (track, index) => {
-                                        if (
-                                          !(
-                                              index > this.trackIndex &&
-                                              track.type !== 'random' &&
-                                              name
-                                                ? track.id === parseInt(id)
-                                                : track.name === name
-
-                                          )
-                                        ) {
-                                          return true
-                                        } else {
-                                          if (track.type === 'voice') {
-                                            const filePath = path.join(this.workDirTemp, track.name)
-                                            if (await fsPromise.exists(path)) {
-                                              await fsPromise.rm(path)
-                                            }
-                                          }
-                                          return false
-                                        }
-                                      }
-                                    )
-
-      if (this.tracks.length !== filteredTracks.length) {
-        this.tracks = filteredTracks
-        this.socketSetStreamTracks()
-        return true
-      }
-    }
-
-    return false
-  }
-
-  getAllStreamTracks (isFullPath) {
-    this.log('getAllStreamTracks')
-
-    if (isFullPath) {
-      return this.tracks.map(track => {
-        if (track.type !== 'voice') {
-          return {
-            ...track,
-            path: path.join(this.workDirTracks, track.name)
-          }
-        }
-        return track
-      })
-    } else {
-      return this.tracks
-    }
-  }
-
-  getStreamTrack (isFullPath) {
-    this.log('getStreamTrack')
-
-    const isTrack = this.tracks[this.index] || false
-
-    if (isTrack && isTrack.name) {
-      if (isFullPath) {
-        if (isTrack.type !== 'voice') {
-          return {
-            ...isTrack,
-            path: path.join(this.workDirTracks, isTrack.name)
-          }
-        }
-      }
-      return isTrack
-    }
-
-    return false
-  }
-
-  getStreamTrackPicture () {
-    this.log('getStreamTrackPicture')
-
-    const track = this.getStreamTrack()
-    if (track.type === 'file') {
-      return getTrackPicture(track.name)
-    }
-  }
-
-  getStreamTrackInfo () {
-    this.log('getStreamTrackPicture')
-
-    const track = this.getStreamTrack()
-    if (track.type === 'file') {
-      return getTrackInfo(track.name)
-    }
+  return {
+    push,
+    pop,
+    addListener,
+    all,
+    current,
+    start: () => loop(),
+    onUse: usePush,
+    onPop: popPush,
+    onPush: pushPush,
+    onFind: findPush,
+    onUnload: unloadPush,
+    onAllTracks: allTracksPush
   }
 }
 
