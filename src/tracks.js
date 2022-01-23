@@ -227,9 +227,9 @@ const Tracks = async ({ pathWorkDir }) => {
   const loads = async pathDir => {
     const paths = await fsPromise.readdir(pathDir)
     const ids = []
-    for (let i = 0; i < filePaths.length; i++) {
-      const path = path.join(pathDir, paths[i])
-      const id = await load(path)
+    for (let i = 0; i < paths.length; i++) {
+      const filePath = path.join(pathDir, paths[i])
+      const id = await load(filePath)
       ids.push(id)
     }
 
@@ -245,30 +245,22 @@ const Tracks = async ({ pathWorkDir }) => {
   const info = async data => {
     const track = find(data)
 
-    await onInfo({
-      common: {}
-    })
-    return {
-      common: {}
+    if (track && track.path) {
+      try {
+        const data = await mm.parseFile(track.path)
+
+        delete data.common.picture
+        delete data.native
+        delete data.quality
+        return data
+
+        await onInfo(data)
+        return data
+      } catch (err) {
+        console.log('info', err)
+        delete trackList[track.id]
+      }
     }
-
-
-    // if (track && track.path) {
-    //   try {
-    //     const data = await mm.parseFile(track.path)
-    //
-    //     delete data.common.picture
-    //     delete data.native
-    //     delete data.quality
-    //     return data
-    //
-    //     await onInfo(data)
-    //     return data
-    //   } catch (err) {
-    //     console.log('info', err)
-    //     delete trackList[track.id]
-    //   }
-    // }
 
     await onInfo(null)
     return null
@@ -277,7 +269,7 @@ const Tracks = async ({ pathWorkDir }) => {
   const picture = async data => {
     const track = find(data)
 
-    /*if (track && track.path) {
+    if (track && track.path) {
       try {
         const data = await mm.parseFile(track.path)
 
@@ -293,7 +285,7 @@ const Tracks = async ({ pathWorkDir }) => {
         await onPicture(picture)
         return picture
       } catch (e) {}
-    }*/
+    }
 
     await onPicture(null)
     return null

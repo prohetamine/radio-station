@@ -1,20 +1,16 @@
 const path          = require('path')
     , fs            = require('fs')
     , puppeteer     = require('puppeteer')
-    , express       = require('express')
-    , http          = require('http')
-    , IO            = require('socket.io')
-    , cors          = require('cors')
     , sendChunk     = require('./utils/send-chunk')
     , noise         = require('./utils/noise')
-    , callback      = require('./utils/callback') 
 
 const sfmediastream$v1 = fs.readFileSync(path.join(__dirname, '/utils/sfmediastream@v1.js'), 'utf8')
     , socket$v3_0_5 = fs.readFileSync(path.join(__dirname, '/utils/socket.io-3.0.5.js'), 'utf8')
 
-const StreamHelper = async ({ login, password, port }) => {
+const StreamHelper = async ({ login, password, port, puppeteerLauncher }) => {
   let listeners = []
     , audioHeaders = null
+    , browser = null
 
   const addListener = (req, res) => {
     res.writeHead(200, {
@@ -32,10 +28,31 @@ const StreamHelper = async ({ login, password, port }) => {
     listeners.push(res)
   }
 
-  let browser = null
+  const stream = socket => {
+    socket.on('stream-helper-headers', chunk => {
+      audioHeaders = Buffer.from(chunk)
+    })
+
+    socket.on('stream-helper-audio', chunk => {
+      if (!audioHeaders) {
+        return
+      }
+      sendChunk(listeners, chunk)
+    })
+  }
+
+  const switchLauncher = async isLauncher => {
+    if (browser) {
+      await browser.close()
+      if (browser && browser.process() != null) {
+        browser.process().kill('SIGINT')
+      }
+      start(isLauncher)
+    }
+  }
 
   const start = async (isLauncher = false) => {
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] })
+    browser = await puppeteer.launch(puppeteerLauncher)
     const [page] = await browser.pages()
 
     await page.addScriptTag({ content: sfmediastream$v1 })
@@ -117,29 +134,6 @@ const StreamHelper = async ({ login, password, port }) => {
 
       await presenterMedia.startRecording()
     }, { login, password, port, noise, isLauncher })
-  }
-
-  const stream = socket => {
-    socket.on('stream-helper-headers', chunk => {
-      audioHeaders = Buffer.from(chunk)
-    })
-
-    socket.on('stream-helper-audio', chunk => {
-      if (!audioHeaders) {
-        return
-      }
-      sendChunk(listeners, chunk)
-    })
-  }
-
-  const switchLauncher = async isLauncher => {
-    if (browser) {
-      await browser.close()
-      if (browser && browser.process() != null) {
-        browser.process().kill('SIGINT')
-      }
-      start(isLauncher)
-    }
   }
 
   return {

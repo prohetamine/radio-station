@@ -12,11 +12,9 @@ const server = http.createServer(app)
 
 RadioStation.create({
   pathWorkDir: path.join(__dirname, 'radio-station-tracks'),
-  port: 1111,
-  login: 'localhost',
-  password: 'hackme'
+  isLauncher: false
 }).then(radio => {
-  /*app.use(cors())
+  app.use(cors())
 
   app.get('/picture', async (req, res) => {
     radio.picture(req, res)
@@ -27,7 +25,7 @@ RadioStation.create({
       console.log('--> onUse', info)
       socket.emit('onUse', info)
     })
-  })*/
+  })
 
   app.get('/radio', (req, res) => {
     radio.addListener(req, res)

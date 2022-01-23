@@ -120,9 +120,11 @@ const Stream = ({ isAutoStart }) => {
           const chunk = buffer.slice(start, end)
           sendChunk(listeners, chunk)
 
-          if (!isStart) {
-            onStart()
-            isStart = true
+          if (i > 10) {
+            if (!isStart) {
+              onStart()
+              isStart = true
+            }
           }
 
           await sleep(100)

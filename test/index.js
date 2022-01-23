@@ -1,9 +1,14 @@
 const express         = require('express')
     , app             = express()
-    , fs              = require('fs')
+    , http            = require('http')
     , cors            = require('cors')
+    , fs              = require('fs')
     , path            = require('path')
-    , Radio           = require('./../src/radio-station')
+    , { Server }      = require("socket.io")
+    , RadioStation    = require('./../src/radio-station')
+
+const server = http.createServer(app)
+    , io = new Server(server)
 
 ;(async () => {
   const pathWorkDir = path.join(__dirname, 'radio-station-tracks')
@@ -12,19 +17,14 @@ const express         = require('express')
       , pathTrack2 = path.join(__dirname, '/../assets/track2.mp3')
       , pathTrack3 = path.join(__dirname, '/../assets/track3.mp3')
 
-
-  const radio = await Radio.createStation({
-    pathWorkDir,
-    port: 1111,
-    login: 'localhost',
-    password: 'hackme'
+  const radio = await RadioStation.create({
+    pathWorkDir: path.join(__dirname, 'radio-station-tracks'),
+    isLauncher: false
   })
 
-  /*radio.stream.onUse((...data) => {
+  radio.stream.onUse((...data) => {
     console.log('--> onUse', ...data)
-  })*/
-
-  /*
+  })
 
   radio.track.onLoad(id => {
     const name = radio.track.find(id).name
@@ -61,13 +61,10 @@ const express         = require('express')
   console.log('--> stream all', radio.stream.all())
   console.log('--> stream pop', radio.stream.pop(popId))
   console.log('--> stream all', radio.stream.all())
-  */
-
 
   app.get('/radio', (req, res) => {
     radio.addListener(req, res)
   })
-
 })()
 
 
