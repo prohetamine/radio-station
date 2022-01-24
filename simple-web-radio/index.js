@@ -12,7 +12,10 @@ const server = http.createServer(app)
 
 RadioStation.create({
   pathWorkDir: path.join(__dirname, 'radio-station-tracks'),
-  isLauncher: false
+  login: 'localhost',
+  password: 'hackme',
+  port: 9933
+  //isLauncher: false
 }).then(radio => {
   app.use(cors())
 
