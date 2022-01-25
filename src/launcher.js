@@ -1,17 +1,10 @@
-const sendChunk     = require('./utils/send-chunk')
-    , callback      = require('./utils/callback')
+const callback = require('./utils/callback')
 
 const NULL = JSON.stringify(null)
 
-const Launcher = ({
-  login: _login,
-  password: _password,
-  port,
-  pathLauncher
-}) => {
-  let listeners = []
-    , audioHeaders = null
-    , sockets = []
+const Launcher = ({ debug }) => {
+  let sockets = []
+  let audioHeaders = null
 
   const [onLoad, loadPush] = callback()
       , [onUnload, unloadPush] = callback()
@@ -22,43 +15,19 @@ const Launcher = ({
       , [onCurrentTrack, currentTrackPush] = callback()
       , [onInfo, infoPush] = callback()
       , [onPicture, picturePush] = callback()
-      , [onListener, listenerPush] = callback()
-      , [onSwitchLauncher, switchLauncherPush] = callback()
-
-  const addListener = (req, res) => {
-    res.writeHead(200, {
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
-      'Content-Type': 'audio/webm',
-      'Transfer-Encoding': 'chunked',
-      'Cache-Control': 'no-cache, no-store',
-      'Connection': 'keep-alive'
-    })
-
-    if (audioHeaders) {
-      res.write(audioHeaders)
-    }
-
-    listeners.push(res)
-  }
+      , [onSwitch, switchPush] = callback()
 
   const socketEmit = (event, data) =>
     sockets.forEach(socket => {
       socket.emit(event, data)
     })
 
-  const addAdmin = socket => sockets.push(socket)
-
   const switchLauncher = socket => {
-    socket.on('switch-launcher-off', () => onSwitchLauncher(false))
-    socket.on('switch-launcher-on', () => onSwitchLauncher(true))
+    socket.on('switch-launcher-off', () => onSwitch(false))
+    socket.on('switch-launcher-on', () => onSwitch(true))
   }
 
-  const disconnect = socket =>
-    socket.on('disconnect', () =>
-      sockets = sockets.filter(_socket => _socket.id !== socket.id)
-    )
-
-  const allTracks = async socket => {
+  const allTracks = async socket =>
     socket.on('allTracks', async () => {
       try {
         let tracks = await onAllTracks()
@@ -67,12 +36,11 @@ const Launcher = ({
           socket.emit('onAllTracks', tracks)
         }
       } catch (err) {
-        console.log('allTracks', err)
+        debug && console.log('allTracks', err)
       }
     })
-  }
 
-  const allStream = async socket => {
+  const allStream = async socket =>
     socket.on('allStream', async () => {
       try {
         let tracks = await onAllStream()
@@ -81,12 +49,11 @@ const Launcher = ({
           socket.emit('onAllStream', tracks)
         }
       } catch (err) {
-        console.log('allStream', err)
+        debug && console.log('allStream', err)
       }
     })
-  }
 
-  const currentTrack = async socket => {
+  const currentTrack = async socket =>
     socket.on('currentTrack', async () => {
       try {
         let track = await onCurrentTrack()
@@ -95,25 +62,29 @@ const Launcher = ({
           socket.emit('onCurrentTrack', track)
         }
       } catch (err) {
-        console.log('currentTrack', err)
+        debug && console.log('currentTrack', err)
       }
     })
-  }
 
-  const microphone = socket => {
+  const stream = socket => {
+    sockets.push(socket)
+
+    socket.on('disconnect', () =>
+      sockets = sockets.filter(_socket => _socket.id !== socket.id)
+    )
+
     socket.on('launcher-header', chunk => {
       audioHeaders = Buffer.from(chunk)
     })
 
+    if (audioHeaders) {
+      socket.emit('launcher-stream', audioHeaders)
+    }
+
     socket.on('launcher-audio', chunk => {
-      if (!audioHeaders) {
-        return
-      }
-      sendChunk(listeners, chunk)
+      socketEmit('launcher-stream', chunk)
     })
   }
-
-  const radio = (...args) => onListener(...args)
 
   const picture = async (req, res) => {
     const { id = null } = req.query
@@ -131,7 +102,7 @@ const Launcher = ({
           return
         }
       } catch (err) {
-        console.log('picture', err)
+        debug && console.log('picture', err)
       }
     }
 
@@ -151,7 +122,7 @@ const Launcher = ({
           return
         }
       } catch (err) {
-        console.log('info', err)
+        debug && console.log('info', err)
       }
     }
 
@@ -171,7 +142,7 @@ const Launcher = ({
           return
         }
       } catch (err) {
-        console.log('push', err)
+        debug && console.log('push', err)
       }
     }
 
@@ -191,7 +162,7 @@ const Launcher = ({
           return
         }
       } catch (err) {
-        console.log('pop', err)
+        debug && console.log('pop', err)
       }
     }
 
@@ -202,14 +173,10 @@ const Launcher = ({
     const { name = null } = req.query
     if (name) {
       try {
-        const buffer = await new Promise(res => {
+        const buffer = await new Promise(resolve => {
           const buffer = []
-          req.on('data', chunk => {
-            buffer.push(chunk)
-          })
-          req.on('end', () => {
-            res(buffer)
-          })
+          req.on('data', chunk => buffer.push(chunk))
+          req.on('end', () => resolve(buffer))
         })
 
         let id = await onLoad(name, buffer)
@@ -221,7 +188,7 @@ const Launcher = ({
           return
         }
       } catch (err) {
-        console.log('load', err)
+        debug && console.log('load', err)
       }
     }
 
@@ -241,7 +208,7 @@ const Launcher = ({
           return
         }
       } catch (err) {
-        console.log('unload', err)
+        debug && console.log('unload', err)
       }
     }
 
@@ -249,20 +216,17 @@ const Launcher = ({
   }
 
   return {
-    addAdmin,
-    disconnect,
     allTracks,
     allStream,
     currentTrack,
-    microphone,
+    stream,
     picture,
     info,
-    radio,
     push,
     pop,
     load,
     unload,
-    switchLauncher,
+    switch: switchLauncher,
     onLoad: loadPush,
     onUnload: unloadPush,
     onPush: pushPush,
@@ -272,9 +236,7 @@ const Launcher = ({
     onCurrentTrack: currentTrackPush,
     onInfo: infoPush,
     onPicture: picturePush,
-    onListener: listenerPush,
-    onSwitchLauncher: switchLauncherPush,
-    addListener,
+    onSwitch: switchPush,
     airkiss: {
       allStream: async () => {
         try {
@@ -283,7 +245,9 @@ const Launcher = ({
           if (tracks) {
             socketEmit('onAllStream', tracks)
           }
-        } catch (err) {}
+        } catch (err) {
+          debug && console.log('allStream', err)
+        }
       },
       currentTrack: async () => {
         try {
@@ -292,7 +256,9 @@ const Launcher = ({
           if (track) {
             socketEmit('onCurrentTrack', track)
           }
-        } catch (err) {}
+        } catch (err) {
+          debug && console.log('currentTrack', err)
+        }
       },
       allTracks: async () => {
         try {
@@ -301,7 +267,9 @@ const Launcher = ({
           if (tracks) {
             socketEmit('onAllTracks', tracks)
           }
-        } catch (err) {}
+        } catch (err) {
+          debug && console.log('allTracks', err)
+        }
       }
     }
   }

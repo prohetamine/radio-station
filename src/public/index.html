@@ -9,18 +9,76 @@
 <body>
   <script type="text/javascript" src='https://cdn.jsdelivr.net/npm/sfmediastream@v1'></script>
   <script src="/socket.io/socket.io.js"></script>
-  <audio src="/radio" controls></audio>
+  <audio id='lol' controls></audio>
   <div id='info'></div>
   <script>
-    const socket = io('/')
-    const info = document.querySelector('#info')
-
-    console.log('data')
-
-    socket.on('onUse', data => {
-      console.log(data)
-      info.innerHTML = JSON.stringify(data)
+    const socket = io('/', {
+      auth: {
+        login: 'localhost',
+        password: 'hackme'
+      }
     })
+
+    window.isFirstBlock = true;
+    // Initialize background worker
+    window.queue = [];
+
+    window.audio = document.querySelector('#lol') //new Audio()
+
+    let mediaSource = new MediaSource()
+    window.audio.src = window.URL.createObjectURL(mediaSource)
+    window.audio.autoplay = true
+    window.audio.crossOrigin = 'anonymous'
+
+
+    let pre_pos = 0
+    mediaSource.addEventListener('sourceopen', function () {
+      window.sourceBuffer = mediaSource.addSourceBuffer('audio/webm;codecs=opus');
+
+      socket.on('launcher-stream', data => {
+        console.log(data)
+        window.sourceBuffer.appendBuffer(data)
+      })
+
+      sourceBuffer.addEventListener('updateend', function (_) {
+        let pos = audio.currentTime
+
+        if (audio.buffered.length > 0) {
+          let start = audio.buffered.start(audio.buffered.length - 1)
+          let end = audio.buffered.end(audio.buffered.length - 1)
+
+          if (pos < start) {
+            audio.currentTime = start
+          }
+
+          if (pos > end) {
+            audio.currentTime = start
+          }
+
+          if (pos - pre_pos != 0 && end - pos > 3) {
+            audio.currentTime = end
+          }
+
+          for (let i = 0; i < audio.buffered.length - 1; i++) {
+            let prestart = audio.buffered.start(i)
+            let preend = audio.buffered.end(i)
+            if (!sourceBuffer.updating) {
+              sourceBuffer.remove(prestart, preend)
+            }
+          }
+
+          if (pos - start > 10 && !sourceBuffer.updating) {
+            sourceBuffer.remove(0, pos - 3)
+          }
+
+          if(end - pos > 10 && !sourceBuffer.updating) {
+            sourceBuffer.remove(0, end - 3)
+          }
+        }
+        pre_pos = pos
+      })
+    })
+
   </script>
 </body>
 </html>

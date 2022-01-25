@@ -6,8 +6,9 @@ const path              = require('path')
     , pathToName        = require('./utils/path-to-name')
     , convertingTrack   = require('./utils/converting-track')
     , hash              = require('./utils/hash')
+    , callback          = require('./utils/callback')
 
-const Tracks = async ({ pathWorkDir }) => {
+const Tracks = async ({ pathWorkDir, debug }) => {
   const pathWorkDirTracks = path.join(pathWorkDir, 'tracks')
       , pathWorkDirTemp = path.join(pathWorkDir, 'temp')
       , pathWorkDirData = path.join(pathWorkDir, 'data.json')
@@ -20,15 +21,16 @@ const Tracks = async ({ pathWorkDir }) => {
         , json = utf8.decode(bytes)
 
     trackList = JSON.parse(json)
-  } catch (e) {
+  } catch (err) {
+    debug && console.log(err)
+    debug && console.log('Create work folders and files..')
     const isPathWorkDir = await fsPromise.exists(pathWorkDirTracks)
         , isWorkDirTemp = await fsPromise.exists(pathWorkDirTemp)
         , isWorkDirData = await fsPromise.exists(pathWorkDirData)
 
     !isPathWorkDir && await fsPromise.mkdir(pathWorkDirTracks, { recursive: true })
     !isWorkDirTemp && await fsPromise.mkdir(pathWorkDirTemp, { recursive: true })
-
-    await fsPromise.writeFile(pathWorkDirData, JSON.stringify({}))
+    !isWorkDirData && await fsPromise.writeFile(pathWorkDirData, JSON.stringify({}))
   }
 
   const write = async () => {
@@ -39,8 +41,8 @@ const Tracks = async ({ pathWorkDir }) => {
 
       await fsPromise.writeFile(pathWorkDirData, text)
     } catch (err) {
-      console.log('write', err)
-      console.log(trackList)
+      debug && console.log('write', err)
+      debug && console.log(trackList)
     }
   }
 
@@ -55,19 +57,12 @@ const Tracks = async ({ pathWorkDir }) => {
     }
   })
 
-  const loadCallbacks = []
-      , unloadCallbacks = []
-      , allCallbacks = []
-      , infoCallbacks = []
-      , findCallbacks = []
-      , pictureCallbacks = []
-
-  const onLoad = (...args) => loadCallbacks.map(callback => callback(...args))
-      , onUnload = (...args) => unloadCallbacks.map(callback => callback(...args))
-      , onAll = (...args) => allCallbacks.map(callback => callback(...args))
-      , onInfo = (...args) => infoCallbacks.map(callback => callback(...args))
-      , onFind = (...args) => findCallbacks.map(callback => callback(...args))
-      , onPicture = (...args) => pictureCallbacks.map(callback => callback(...args))
+  const [onLoad, loadPush] = callback()
+      , [onUnload, unloadPush] = callback()
+      , [onAll, allPush] = callback()
+      , [onInfo, infoPush] = callback()
+      , [onFind, findPush] = callback()
+      , [onPicture, picturePush] = callback()
 
   const clean = async pathDir => {
     const tracks = Object.values(trackList)
@@ -113,7 +108,7 @@ const Tracks = async ({ pathWorkDir }) => {
           onUnload(id)
           return id
         } catch (err) {
-          console.log('unload', err)
+          debug && console.log('unload', err)
           track[id] = track
         }
       }
@@ -168,7 +163,7 @@ const Tracks = async ({ pathWorkDir }) => {
       let name = args[0]
         , buffer = args[1]
 
-      return new Promise(async resolve => {
+      const writeFileBuffer = async resolve => {
         const tempPath = path.join(pathWorkDirTemp, name)
         const _path = path.join(pathWorkDirTracks, name.replace(/\..+$/, '.mp3'))
 
@@ -180,14 +175,12 @@ const Tracks = async ({ pathWorkDir }) => {
           return
         }
 
-        tempFile = await fsPromise.createWriteStream(tempPath)
+        const tempFile = await fsPromise.createWriteStream(tempPath)
 
         buffer.forEach(chunk => tempFile.write(chunk))
 
         tempFile.on('finish', async () => {
           const isOk = await convertingTrack(tempPath, _path)
-
-          console.log(isOk)
 
           if (isOk) {
             const id = hash()
@@ -196,7 +189,6 @@ const Tracks = async ({ pathWorkDir }) => {
 
             await clean(pathWorkDirTemp)
             await onLoad(id)
-            console.log(id)
             resolve(id)
             return
           }
@@ -206,7 +198,7 @@ const Tracks = async ({ pathWorkDir }) => {
           resolve(null)
         })
 
-        tempFile.on('error', async (err) => {
+        tempFile.on('error', async () => {
           if (await fsPromise.exists(tempPath)) {
             await fsPromise.unlink(tempPath)
           }
@@ -217,15 +209,18 @@ const Tracks = async ({ pathWorkDir }) => {
         })
 
         tempFile.end()
-      })
+      }
+
+      return new Promise(writeFileBuffer)
     }
 
-    console.log('Is not type file, one or two args')
+    debug && console.log('Is not type file, one or two args')
     return null
   }
 
   const loads = async pathDir => {
-    const paths = await fsPromise.readdir(pathDir)
+    let paths = await fsPromise.readdir(pathDir)
+    paths = paths.filter(path => path.match(/\.mp3$/))
     const ids = []
     for (let i = 0; i < paths.length; i++) {
       const filePath = path.join(pathDir, paths[i])
@@ -252,12 +247,11 @@ const Tracks = async ({ pathWorkDir }) => {
         delete data.common.picture
         delete data.native
         delete data.quality
-        return data
 
         await onInfo(data)
         return data
       } catch (err) {
-        console.log('info', err)
+        debug && console.log('info', err)
         delete trackList[track.id]
       }
     }
@@ -284,7 +278,9 @@ const Tracks = async ({ pathWorkDir }) => {
 
         await onPicture(picture)
         return picture
-      } catch (e) {}
+      } catch (err) {
+        debug && console.log(err)
+      }
     }
 
     await onPicture(null)
@@ -292,20 +288,19 @@ const Tracks = async ({ pathWorkDir }) => {
   }
 
   return {
-    path: pathWorkDirTracks,
-    load,
     loads,
+    load,
     unload,
     all,
     find,
     info,
     picture,
-    onLoad: callback => loadCallbacks.push(callback),
-    onUnload: callback => unloadCallbacks.push(callback),
-    onAll: callback => allCallbacks.push(callback),
-    onFind: callback => findCallbacks.push(callback),
-    onInfo: callback => infoCallbacks.push(callback),
-    onPicture: callback => pictureCallbacks.push(callback)
+    onLoad: loadPush,
+    onUnload: unloadPush,
+    onAll: allPush,
+    onFind: findPush,
+    onInfo: infoPush,
+    onPicture: picturePush
   }
 }
 

@@ -4,8 +4,8 @@
   "description": "A free radio station on node js with a simple setup and the ability to conduct live broadcasts on the site 🎙 📡",
   "main": "src/index.js",
   "scripts": {
-    "test": "node test/index.js",
-    "simple-web-radio": "node simple-web-radio/index.js"
+    "dev": "node dev/index.js",
+    "simple-web-radio": "node examples/simple-web-radio/index.js"
   },
   "repository": {
     "type": "git",
@@ -47,7 +47,12 @@
     "sleep": "^6.3.0",
     "sleep-promise": "^9.1.0",
     "socket.io": "^4.4.1",
+    "split-limit": "^1.0.4",
+    "split-slice": "^0.0.1",
     "throttle": "^1.0.3",
     "utf8": "^3.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.7.0"
   }
 }

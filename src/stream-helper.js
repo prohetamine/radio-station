@@ -1,7 +1,7 @@
-const path                = require('path')
-    , sendChunk           = require('./utils/send-chunk')
-    , noise               = require('./utils/noise')
-    , puppeteerProtector  = require('./utils/puppeteer-protector')
+const path          = require('path')
+    , nodeExecuter  = require('./utils/node-executer')
+
+const scriptStreamHelper = path.join(__dirname, '/utils/stream-helper')
 
 const StreamHelper = async ({ login, password, port, puppeteerLauncher }) => {
   let listeners = []
@@ -10,11 +10,11 @@ const StreamHelper = async ({ login, password, port, puppeteerLauncher }) => {
 
   const addListener = (req, res) => {
     res.writeHead(200, {
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Cache-Control': 'no-store, no-cache',
       'Content-Type': 'audio/webm',
       'Transfer-Encoding': 'chunked',
-      'Cache-Control': 'no-cache, no-store',
-      'Connection': 'keep-alive'
+      'Content-Transfer-Encoding': 'binary',
+      'Connection': 'Close'
     })
 
     if (audioHeaders) {
@@ -33,13 +33,17 @@ const StreamHelper = async ({ login, password, port, puppeteerLauncher }) => {
       if (!audioHeaders) {
         return
       }
-      sendChunk(listeners, chunk)
+
+      listeners.forEach(
+        client =>
+          client.write(chunk)
+      )
     })
   }
 
-  const start = async isLauncher => {
+  const start = async (isLauncher = false) => {
     instances = instances.filter(kill => kill())
-    const streamHelper = await puppeteerProtector(path.join(__dirname, '/utils/stream-helper'), login, password, port, isLauncher, JSON.stringify(puppeteerLauncher))
+    const streamHelper = await nodeExecuter(scriptStreamHelper, login, password, port, isLauncher, JSON.stringify(puppeteerLauncher))
     instances.push(streamHelper)
   }
 
@@ -47,7 +51,7 @@ const StreamHelper = async ({ login, password, port, puppeteerLauncher }) => {
 
   return {
     start,
-    switchLauncher,
+    switch: switchLauncher,
     stream,
     addListener
   }

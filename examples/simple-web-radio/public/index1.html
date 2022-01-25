@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="javascripts/WebAudioRecorder.js"></script>
+  <title>Document</title>
+</head>
+<body>
+  <input type='range' max='50' min='0' value='1' step='0.01' id='microphone-range'>
+  <input type='range' max='50' min='0' value='1' step='0.01' id='music-range'>
+  <br />
+  <canvas id='canvas' width='512' height='256'></canvas>
+  <canvas id='canvas1' width='512' height='256'></canvas>
+  <script>
+    const microphoneRange = document.querySelector('#microphone-range')
+    const musicRange = document.querySelector('#music-range')
+    const canvas = document.querySelector('#canvas')
+    const canvas1 = document.querySelector('#canvas1')
+
+    const ctx = canvas.getContext('2d')
+    const ctx1 = canvas1.getContext('2d')
+
+    ;(async () => {
+      await new Promise(res => window.addEventListener('click', res))
+
+      const context = new AudioContext()
+
+      const microphoneGain = context.createGain()
+      const musicGain = context.createGain()
+
+      microphoneRange.addEventListener('input', ({ target: { value } }) => {
+        microphoneGain.gain.value = value
+      })
+
+      musicRange.addEventListener('input', ({ target: { value } }) => {
+        musicGain.gain.value = value
+      })
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+
+      const audio = new Audio()
+      audio.src = 'http://localhost:8080/radio'
+      audio.play()
+
+      const streamSourse = context.createMediaStreamSource(stream)
+      const audioSourse = context.createMediaElementSource(audio)
+
+      streamSourse.connect(microphoneGain)
+      audioSourse.connect(musicGain)
+
+      microphoneGain.connect(context.destination)
+      musicGain.connect(context.destination)
+
+      var microphoneScript = context.createScriptProcessor(512, 1, 1)
+      microphoneGain.connect(microphoneScript)
+
+      microphoneScript.onaudioprocess = event => {
+        const float32Array = event.inputBuffer.getChannelData(0)
+        var output = new Uint8Array(float32Array.length);
+
+        for (var i = 0; i < float32Array.length; i++) {
+          var tmp = Math.max(-1, Math.min(1, float32Array[i]));
+          tmp = tmp < 0 ? (tmp * 0x8000) : (tmp * 0x7FFF);
+          tmp = tmp / 256;
+          output[i] = tmp + 128;
+        }
+
+        ctx.clearRect(0, 0, 512, 256)
+        ctx.lineWidth = '2'
+        ctx.lineJoin = 'round'
+        ctx.beginPath()
+        for (let i = 0; i < output.length; i++) {
+          if (i === 0) {
+            ctx.moveTo(i, output[i])
+          } else {
+            ctx.lineTo(i, output[i])
+          }
+        }
+        ctx.stroke()
+      }
+
+      microphoneScript.connect(context.destination)
+
+      var musicScript = context.createScriptProcessor(512, 1, 1)
+      musicGain.connect(musicScript)
+
+      musicScript.onaudioprocess = event => {
+        const float32Array = event.inputBuffer.getChannelData(0)
+        var output = new Uint8Array(float32Array.length);
+
+        for (var i = 0; i < float32Array.length; i++) {
+          var tmp = Math.max(-1, Math.min(1, float32Array[i]));
+          tmp = tmp < 0 ? (tmp * 0x8000) : (tmp * 0x7FFF);
+          tmp = tmp / 256;
+          output[i] = tmp + 128;
+        }
+
+        //console.log(output)
+
+        ctx1.clearRect(0, 0, 512, 256)
+        ctx1.lineWidth = '2'
+        ctx1.lineJoin = 'round'
+        ctx1.beginPath()
+        for (let i = 0; i < output.length; i++) {
+          if (i === 0) {
+            ctx1.moveTo(i, output[i])
+          } else {
+            ctx1.lineTo(i, output[i])
+          }
+        }
+        ctx1.stroke()
+      }
+
+      musicScript.connect(context.destination)
+    })()
+  </script>
+</body>
+</html>

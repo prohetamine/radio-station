@@ -1,10 +1,13 @@
+const path = require('path')
+
 const pathToName = filePath => {
-  try {
-    const name = filePath.match(/[^\/]+\..+$/)
-    return (name && name[0]) || false
-  } catch (e) {
-    return false
+  const name = path.basename(filePath)
+
+  if (name.match(/\./)) {
+    return name
   }
+
+  return false
 }
 
 module.exports = pathToName

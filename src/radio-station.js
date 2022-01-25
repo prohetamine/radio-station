@@ -1,55 +1,64 @@
-const path            = require('path')
-    , CFonts          = require('cfonts')
-    , hash            = require('./utils/hash')
-    , sleep           = require('sleep-promise')
-    , Tracks          = require('./tracks')
-    , Stream          = require('./stream')
-    , StreamHelper    = require('./stream-helper')
-    , Launcher        = require('./launcher')
-    , express         = require('express')
-    , http            = require('http')
-    , IO              = require('socket.io')
-    , cors            = require('cors')
+const path          = require('path')
+    , CFonts        = require('cfonts')
+    , hash          = require('./utils/hash')
+    , sleep         = require('sleep-promise')
+    , Tracks        = require('./tracks')
+    , Stream        = require('./stream')
+    , StreamHelper  = require('./stream-helper')
+    , Launcher      = require('./launcher')
+    , express       = require('express')
+    , http          = require('http')
+    , IO            = require('socket.io')
+    , cors          = require('cors')
+    , splitSlice    = require('split-slice')
 
-const defaultCreateArgs = {
-  pathWorkDir: path.join(__dirname, 'station'),
-  pathLauncher: path.join(__dirname, 'public'),
-  isLauncher: true,
-  port: 9933,
-  login: `localhost_${hash().slice(0, 16)}`,
-  password: `hackme_${hash().slice(0, 16)}`,
-  isAutoStart: true,
-  puppeteerLauncher: { headless: true, args: ['--no-sandbox'] }
+const defaultArgs = {
+  create: {
+    pathWorkDir: path.join(__dirname, 'station'),
+    pathLauncher: path.join(__dirname, 'public'),
+    isLauncher: true,
+    port: 9933,
+    login: `localhost_${hash().slice(0, 16)}`,
+    password: `hackme_${hash().slice(0, 16)}`,
+    isAutoStart: true,
+    puppeteerLauncher: {
+      headless: true,
+      args: ['--no-sandbox']
+    },
+    debug: false
+  },
+  onUse: {
+    isSafe: true
+  }
 }
 
-const defaultOnUseArgs = {
-  isSafe: true
-}
-
-const create = async ({
-  pathWorkDir = defaultCreateArgs.pathWorkDir,
-  pathLauncher = defaultCreateArgs.pathLauncher,
-  isLauncher = defaultCreateArgs.isLauncher,
-  port = defaultCreateArgs.port,
-  login = defaultCreateArgs.login,
-  password = defaultCreateArgs.password,
-  isAutoStart = defaultCreateArgs.isAutoStart,
-  puppeteerLauncher = defaultCreateArgs.puppeteerLauncher
-} = defaultCreateArgs) => {
+const create = async (
+  {
+    pathWorkDir = defaultArgs.create.pathWorkDir,
+    pathLauncher = defaultArgs.create.pathLauncher,
+    isLauncher = defaultArgs.create.isLauncher,
+    port = defaultArgs.create.port,
+    login = defaultArgs.create.login,
+    password = defaultArgs.create.password,
+    isAutoStart = defaultArgs.create.isAutoStart,
+    puppeteerLauncher = defaultArgs.create.puppeteerLauncher,
+    debug = defaultArgs.create.debug
+  } = defaultArgs.create
+) => {
   const app = express()
       , server = http.createServer(app)
       , io = IO(server)
 
   app.use(cors())
 
-  const tracks = await Tracks({ pathWorkDir })
-      , stream = Stream({ isAutoStart })
-      , streamHelper = await StreamHelper({ login, password, port, puppeteerLauncher })
+  const tracks = await Tracks({ pathWorkDir, debug })
+      , stream = Stream({ isAutoStart, debug })
+      , streamHelper = await StreamHelper({ login, password, port, puppeteerLauncher, debug })
 
   let launcher = null
 
   if (isLauncher) {
-    launcher = await Launcher({ pathLauncher, login, password, port })
+    launcher = await Launcher({ pathLauncher, login, password, port, debug })
   }
 
   if (isLauncher) {
@@ -62,7 +71,7 @@ const create = async ({
     launcher.onCurrentTrack(stream.current)
     launcher.onPush(stream.push)
     launcher.onPop(stream.pop)
-    launcher.onSwitchLauncher(streamHelper.switchLauncher)
+    launcher.onSwitch(streamHelper.switch)
     stream.onUse(launcher.airkiss.currentTrack)
     stream.onUse(launcher.airkiss.allStream)
     stream.onPop(launcher.airkiss.allStream)
@@ -82,11 +91,9 @@ const create = async ({
     app.get('/unload', launcher.unload)
     app.get('/picture', launcher.picture)
     app.get('/info', launcher.info)
-    app.get('/radio', launcher.radio)
-    app.get('/launcher-stream', launcher.addListener)
   }
 
-  app.get('/stream', stream.addListener)
+  app.use('/', express.static(__dirname+'/public'))
 
   io.on('connection', socket => {
     const {
@@ -105,15 +112,14 @@ const create = async ({
     }
 
     if (isLauncher) {
-      launcher.addAdmin(socket)
-      launcher.disconnect(socket)
       launcher.allTracks(socket)
       launcher.allStream(socket)
       launcher.currentTrack(socket)
-      launcher.microphone(socket)
-      launcher.switchLauncher(socket)
+      launcher.stream(socket)
+      launcher.switch(socket)
     }
 
+    stream.stream(socket)
     streamHelper.stream(socket)
   })
 
@@ -132,6 +138,22 @@ const create = async ({
       }
     }
     res.end('')
+  }
+
+  const info = async (req, res) => {
+    const { id } = req.query
+    if (id) {
+      const info = await tracks.info(id)
+      if (info) {
+        res.end(
+          JSON.stringify(info)
+        )
+        return
+      }
+    }
+    res.end(
+      JSON.stringify(null)
+    )
   }
 
   const useWrapper = async (isSafe) => {
@@ -153,8 +175,8 @@ const create = async ({
     return null
   }
 
-  const onUse = async (callback, { isSafe = defaultOnUseArgs.isSafe } = defaultOnUseArgs) => {
-    stream.onUse(async (_, use) => {
+  const onUse = async (callback, { isSafe = defaultArgs.onUse.isSafe } = defaultArgs.onUse) => {
+    stream.onUse(async () => {
       const info = await useWrapper(isSafe)
       if (info) {
         callback(info)
@@ -181,6 +203,7 @@ const create = async ({
       info: tracks.info,
       picture: tracks.picture,
       onLoad: tracks.onLoad,
+      onUnload: tracks.onUnload
     },
     stream: {
       start: stream.start,
@@ -188,12 +211,14 @@ const create = async ({
       push: stream.push,
       current: stream.current,
       all: stream.all,
+      onStart: stream.onStart,
       onPush: stream.onPush,
       onPop: stream.onPop,
       onUse: stream.onUse
     },
     addListener: streamHelper.addListener,
     picture,
+    info,
     onUse,
     source: {
       tracks,
@@ -220,14 +245,26 @@ const create = async ({
       const launcherHost = `http://127.0.0.1:${port}`
       const audioHost = `http://127.0.0.1:%yourport%/radio`
 
-      const stringLauncherHost = isLauncher ? `Launcher url: ${launcherHost}${' '.repeat(32-launcherHost.length)}|login: ${login}${' '.repeat(39-login.length)}|password: ${password}${' '.repeat(36-password.length)}|` : ''
+      const messageLauncherHost = isLauncher ? `Launcher url: ${launcherHost}${' '.repeat(32-launcherHost.length)}|login: ${login}${' '.repeat(39-login.length)}|password: ${password}${' '.repeat(36-password.length)}|` : ''
 
-      CFonts.say(`${stringLauncherHost}Audio url: ${audioHost}${' '.repeat(35-audioHost.length)}||It will take some time to start and start playback in the browser... |open the page and wait. If you have any questions, please contact telegram: @prohetamine |and don't be afraid to help the project.| by Stas Prohetamie 2022.01.24`, {
+      CFonts.say(`${messageLauncherHost}Audio url: ${audioHost}${' '.repeat(35-audioHost.length)}`, {
         font: 'console',
         align: 'center',
         colors: ['yellow'],
         background: 'transparent',
         space: true,
+        lineHeight: 0,
+        env: 'node'
+      })
+
+      const message = splitSlice(`It will take some time to start and start playback in the browser... open the page and wait. If you have any questions, please contact telegram: @prohetamine. And don't be afraid to help the project. by Stas Prohetamie 2022.01.24`, 60, { space: true, align: 'left' }).join('|')
+
+      CFonts.say(message, {
+        font: 'console',
+        align: 'center',
+        colors: ['yellow'],
+        background: 'transparent',
+        space: false,
         lineHeight: 0,
         env: 'node'
       })

@@ -1,18 +1,12 @@
-const path              = require('path')
-    , sleep             = require('sleep-promise')
-    , mm                = require('music-metadata')
-    , Throttle          = require('throttle')
-    , fsPromise         = require('fs-extra')
-    , sendChunk         = require('./utils/send-chunk')
-    , arrayRandom       = require('./utils/array-random')
-    , pathToName        = require('./utils/path-to-name')
-    , convertingTrack   = require('./utils/converting-track')
-    , hash              = require('./utils/hash')
-    , callback          = require('./utils/callback')
+const sleep         = require('sleep-promise')
+    , mm            = require('music-metadata')
+    , fsPromise     = require('fs-extra')
+    , arrayRandom   = require('./utils/array-random')
+    , hash          = require('./utils/hash')
+    , callback      = require('./utils/callback')
 
-const Stream = ({ isAutoStart }) => {
-  let listeners = []
-    , allTrackCallbacks = []
+const Stream = ({ isAutoStart, debug }) => {
+  let sockets = []
     , trackIds = []
     , currentTrack = null
     , index = 0
@@ -22,15 +16,19 @@ const Stream = ({ isAutoStart }) => {
       , [onPush, pushPush] = callback()
       , [onPop, popPush] = callback()
       , [onFind, findPush] = callback()
-      , [onUnload, unloadPush] = callback()
       , [onAllTracks, allTracksPush] = callback()
       , [onStart, startPush] = callback()
+
+  const socketEmit = (event, data) =>
+    sockets.forEach(socket => {
+      socket.emit(event, data)
+    })
 
   const push = async id => {
     if (id) {
       const track = onFind(id)[0]
       const streamId = hash()
-      trackIds.push({ ...track, streamId, type: 'file' })
+      trackIds.push({ ...track, streamId, type: 'queue' })
       onPush(streamId)
       return streamId
     } else {
@@ -41,22 +39,28 @@ const Stream = ({ isAutoStart }) => {
 
   const pop = id => {
     const trackIdsFilter = trackIds.filter(({ streamId }, _index) => !(streamId === id && _index > index))
-    isDelete = JSON.stringify(trackIds) !== JSON.stringify(trackIdsFilter)
+    const isDelete = JSON.stringify(trackIds) !== JSON.stringify(trackIdsFilter)
     trackIds = trackIdsFilter
     onPop(id)
     return isDelete
   }
 
-  const addListener = (req, res) => {
-    res.writeHead(200, {
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
-      'Content-Type': 'audio/mpeg',
-      'Transfer-Encoding': 'chunked',
-      'Cache-Control': 'no-cache, no-store',
-      'Connection': 'keep-alive'
-    })
+  const stream = socket => {
+    socket.on('disconnect', () =>
+      sockets = sockets.filter(_socket => _socket.id !== socket.id)
+    )
 
-    listeners.push(res)
+    sockets.push(socket)
+  }
+
+  const start = () => {
+    try {
+      loop()
+      return true
+    } catch (err) {
+      debug && console.log('start', err)
+      return false
+    }
   }
 
   const all = () => trackIds
@@ -105,20 +109,20 @@ const Stream = ({ isAutoStart }) => {
       currentTrack = trackIds[index]
       onUse(index, trackIds[index])
 
-      await new Promise(async end => {
+      const trackRead = async end => {
         const file = await fsPromise.stat(track.path)
             , meta = await mm.parseFile(track.path)
             , bitrate = Math.ceil(file.size / meta.format.duration)
 
         const buffer = await fsPromise.readFile(track.path)
 
-        for (let i = 0; i < meta.format.duration; i += 0.1) {
+        for (let i = 0; i < meta.format.duration; i += 1) {
           const start = Math.ceil(i * bitrate)
-              , end = Math.ceil((i + 0.1) * bitrate)
+              , end = Math.ceil((i + 1) * bitrate)
 
           if (end === undefined) { break }
           const chunk = buffer.slice(start, end)
-          sendChunk(listeners, chunk)
+          socketEmit('stream', chunk)
 
           if (i > 10) {
             if (!isStart) {
@@ -127,10 +131,12 @@ const Stream = ({ isAutoStart }) => {
             }
           }
 
-          await sleep(100)
+          await sleep(1000)
         }
         end()
-      })
+      }
+
+      await new Promise(trackRead)
 
       if (trackIds[index].type !== 'random') {
         break main
@@ -150,16 +156,15 @@ const Stream = ({ isAutoStart }) => {
   return {
     push,
     pop,
-    addListener,
+    stream,
     all,
     current,
-    start: () => loop(),
+    start,
+    onPush: pushPush,
+    onPop: popPush,
     onStart: startPush,
     onUse: usePush,
-    onPop: popPush,
-    onPush: pushPush,
     onFind: findPush,
-    onUnload: unloadPush,
     onAllTracks: allTracksPush
   }
 }

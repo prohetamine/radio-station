@@ -1,2 +1,6 @@
-const random = array => array[parseInt(Math.random() * array.length)] || null
+const random = array => {
+  const randomIndex = parseInt(Math.random() * array.length)
+  return array[randomIndex] || null
+}
+
 module.exports = random
