@@ -243,7 +243,7 @@ const create = async (
       })
 
       const launcherHost = `http://127.0.0.1:${port}`
-      const audioHost = `http://127.0.0.1:%yourport%/radio`
+      const audioHost = `http://127.0.0.1:%yourport%`
 
       const messageLauncherHost = isLauncher ? `Launcher url: ${launcherHost}${' '.repeat(32-launcherHost.length)}|login: ${login}${' '.repeat(39-login.length)}|password: ${password}${' '.repeat(36-password.length)}|` : ''
 

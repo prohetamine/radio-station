@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <script src='/socket.io.js'></script>
+  <title>Radio Station</title>
+</head>
+<body>
+  <img id='picture' width='200' height='200' />
+  <br />
+  <audio controls disableRemotePlayback='true' x-webkit-airplay='allow' preload='none'>
+    <source src='/radio' type='audio/webm'></source>
+  </audio>
+  <div>
+    <span>Title: </span>
+    <span id='title'>Loading...</span>
+  </div>
+  <div>
+    <span>Album: </span>
+    <span id='album'>Loading...</span>
+  </div>
+  <div>
+    <span>Artist: </span>
+    <span id='artist'>Loading...</span>
+  </div>
+
+  <script>
+    const socket = io()
+
+    const picture = document.querySelector('#picture')
+        , title = document.querySelector('#title')
+        , artist = document.querySelector('#artist')
+        , album = document.querySelector('#album')
+
+    picture.addEventListener('error', () => {
+      picture.src = '/default-picture.png'
+    })
+
+    socket.on('connect', () => {
+      socket.on('onUse', async current => {
+        title.innerText = current.name
+
+        picture.src = `/picture?id=${current.id}`
+
+        const fullCurrent = await fetch(`/info?id=${current.id}`).then(d => d.json())
+        
+        if (!fullCurrent.common) {
+          title.innerText = 'Noname'
+          artist.innerText = 'Noname'
+          album.innerText = 'Noname'
+          return
+        }
+
+        if (fullCurrent.common.title) {
+          title.innerText = fullCurrent.common.title
+        }
+
+        if (fullCurrent.common.artist) {
+          artist.innerText = fullCurrent.common.artist
+        }
+
+        if (fullCurrent.common.album) {
+          album.innerText = fullCurrent.common.album
+        }
+      })
+    })
+  </script>
+</body>
+</html>

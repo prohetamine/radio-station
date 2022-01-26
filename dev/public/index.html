@@ -38,16 +38,6 @@
       picture.src = '/default-picture.png'
     })
 
-    /*setTimeout(() => {
-      var xhr = new XMLHttpRequest()
-      xhr.open('GET', '/radio', false)
-      setInterval(() => {
-        console.log(xhr.responseText)
-      }, 1000)
-      xhr.send()
-    }, 1000)*/
-
-
     socket.on('connect', () => {
       socket.on('onUse', async current => {
         console.log('--> current', current)

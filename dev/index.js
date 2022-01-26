@@ -2,7 +2,6 @@ const express         = require('express')
     , app             = express()
     , http            = require('http')
     , path            = require('path')
-    , sleep           = require('sleep-promise')
     , { Server }      = require('socket.io')
     , RadioStation    = require('./../src/radio-station')
 
@@ -12,7 +11,7 @@ const server = http.createServer(app)
 const pathTrack3 = path.join(__dirname, '/../assets/track3.mp3')
 
 RadioStation.create({
-  pathWorkDir: path.join(__dirname, 'tracks'), // optional
+  pathWorkDir: path.join(__dirname, 'tracks-data-folder'), // optional
   isLauncher: false, // optional
   debug: false, // optional
   isAutoStart: false // optional

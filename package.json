@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "node dev/index.js",
-    "simple-web-radio": "node examples/simple-web-radio/index.js"
+    "launcher-web-radio": "node examples/launcher-web-radio/index.js",
+    "node-web-radio": "node examples/node-web-radio/index.js"
   },
   "repository": {
     "type": "git",
