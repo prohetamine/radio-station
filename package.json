@@ -1,8 +1,8 @@
 {
   "name": "radio-station",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A free radio station on node js with a simple setup and the ability to conduct live broadcasts on the site 🎙 📡",
-  "main": "src/index.js",
+  "main": "radio-station/index.js",
   "scripts": {
     "build-launcher": "webpack --config webpack.config.js",
     "dev-launcher": "MODE=dev webpack-dev-server --config webpack.config.js",
