@@ -1,4 +1,5 @@
 const path          = require('path')
+    , fsPromise     = require('fs-extra')
     , CFonts        = require('cfonts')
     , hash          = require('./utils/hash')
     , sleep         = require('sleep-promise')
@@ -25,7 +26,9 @@ const defaultArgs = {
       headless: true,
       args: ['--no-sandbox']
     },
-    debug: false
+    debug: false,
+    dev: true,
+    mainPort: null
   },
   onUse: {
     isSafe: true
@@ -42,14 +45,31 @@ const create = async (
     password = defaultArgs.create.password,
     isAutoStart = defaultArgs.create.isAutoStart,
     puppeteerLauncher = defaultArgs.create.puppeteerLauncher,
-    debug = defaultArgs.create.debug
+    debug = defaultArgs.create.debug,
+    dev = defaultArgs.create.dev,
+    mainPort = defaultArgs.create.mainPort
   } = defaultArgs.create
 ) => {
   const app = express()
       , server = http.createServer(app)
       , io = IO(server)
 
-  app.use(cors())
+  if (isLauncher) {
+    dev && app.use(cors())
+
+    app.use('/', async (req, res, next) => {
+      const normalizePath = req.url.slice(1).replace(/\/$/, '')
+      const file = normalizePath
+                      ? path.join(__dirname, '../launcher/dist', normalizePath)
+                      : path.join(__dirname, '../launcher/dist', 'index.html')
+
+      if (await fsPromise.exists(file)) {
+        res.sendFile(file)
+        return
+      }
+      next()
+    })
+  }
 
   const tracks = await Tracks({ pathWorkDir, debug })
       , stream = Stream({ isAutoStart, debug })
@@ -92,8 +112,6 @@ const create = async (
     app.get('/picture', launcher.picture)
     app.get('/info', launcher.info)
   }
-
-  app.use('/', express.static(__dirname+'/public'))
 
   io.on('connection', socket => {
     const {
@@ -243,11 +261,11 @@ const create = async (
       })
 
       const launcherHost = `http://127.0.0.1:${port}`
-      const audioHost = `http://127.0.0.1:%yourport%`
+          , siteHost = `http://127.0.0.1:${mainPort ? mainPort : '%yourport%'}`
 
       const messageLauncherHost = isLauncher ? `Launcher url: ${launcherHost}${' '.repeat(32-launcherHost.length)}|login: ${login}${' '.repeat(39-login.length)}|password: ${password}${' '.repeat(36-password.length)}|` : ''
 
-      CFonts.say(`${messageLauncherHost}Audio url: ${audioHost}${' '.repeat(35-audioHost.length)}`, {
+      CFonts.say(`${messageLauncherHost}Site url: ${siteHost}${' '.repeat(35-siteHost.length)}`, {
         font: 'console',
         align: 'center',
         colors: ['yellow'],
@@ -257,7 +275,7 @@ const create = async (
         env: 'node'
       })
 
-      const message = splitSlice(`It will take some time to start and start playback in the browser... open the page and wait. If you have any questions, please contact telegram: @prohetamine. And don't be afraid to help the project. by Stas Prohetamie 2022.01.24`, 60, { space: true, align: 'left' }).join('|')
+      const message = splitSlice(`It will take some time to start and start playback in the browser... open the page and wait. If you have any questions, please contact telegram: @prohetamine. And don't be afraid to help the project. by Stas Prohetamie 2022.01.27`, 60, { space: true, align: 'left' }).join('|')
 
       CFonts.say(message, {
         font: 'console',

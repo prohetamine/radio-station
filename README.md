@@ -6,8 +6,3 @@ example:
 ```bash
 yarn node-web-radio
 ```
-
-dev:
-```bash
-yarn dev
-```

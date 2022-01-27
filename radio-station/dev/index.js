@@ -3,17 +3,19 @@ const express         = require('express')
     , http            = require('http')
     , path            = require('path')
     , { Server }      = require('socket.io')
-    , RadioStation    = require('./../src/radio-station')
+    , RadioStation    = require('./../index')
 
 const server = http.createServer(app)
     , io = new Server(server)
 
-const pathTrack3 = path.join(__dirname, '/../assets/track3.mp3')
+const pathTrack3 = path.join(__dirname, '../../assets/track3.mp3')
+const folder = path.join(__dirname, '../../assets')
 
 RadioStation.create({
   pathWorkDir: path.join(__dirname, 'tracks-data-folder'), // optional
-  isLauncher: false, // optional
+  isLauncher: true, // optional
   debug: false, // optional
+  dev: true, // optional
   isAutoStart: false // optional
 }).then(async radio => {
 
@@ -41,9 +43,7 @@ RadioStation.create({
   const id = await radio.track.unload(unloadId)
   console.log('--> radio.track.unload', id)
 
-  const ids = await radio.track.loads(
-    path.join(__dirname, '/../assets')
-  )
+  const ids = await radio.track.loads(folder)
   console.log('--> radio.track.loads', ids)
 
   const tracks = radio.track.all() //.map(track => track.id)

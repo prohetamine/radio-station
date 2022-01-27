@@ -3,16 +3,19 @@ const express         = require('express')
     , http            = require('http')
     , path            = require('path')
     , { Server }      = require('socket.io')
-    , RadioStation    = require('./../../src/radio-station')
+    , RadioStation    = require('./../../radio-station')
 
 const server = http.createServer(app)
     , io = new Server(server)
 
+const port = 8080
+
 RadioStation.create({
   pathWorkDir: path.join(__dirname, 'tracks-data-folder'),
-  isLauncher: false
+  isLauncher: false,
+  mainPort: port
 }).then(async radio => {
-
+  
   await radio.track.loads(
     path.join(__dirname, '/../../assets')
   )
@@ -38,4 +41,4 @@ RadioStation.create({
 
 app.use('/', express.static(__dirname+'/public'))
 
-server.listen(8080)
+server.listen(port)
