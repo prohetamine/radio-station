@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import normalize from './../../../utils/normalize'
 import { observer } from 'mobx-react'
@@ -19,6 +19,8 @@ import SmallText from './../atoms/small-text'
 
 import mainNavigationBackgroundLight from './../../../assets/main-navigation-background-light.svg'
 import mainNavigationBackgroundDark from './../../../assets/main-navigation-background-dark.svg'
+import mainMaxNavigationBackgroundLight from './../../../assets/main-max-navigation-background-light.svg'
+import mainMaxNavigationBackgroundDark from './../../../assets/main-max-navigation-background-dark.svg'
 
 import navigationSoundOnLight from './../../../assets/navigation-sound-on-light.svg'
 import navigationSoundOffLight from './../../../assets/navigation-sound-off-light.svg'
@@ -34,9 +36,7 @@ const Body = styled.div`
   user-select: none;
   overflow: hidden;
   width: 560px;
-  height: 69px;
-  background-image: url(${props => props.theme === 'dark' ? mainNavigationBackgroundDark : mainNavigationBackgroundLight});
-  box-shadow: 0px 2px 6px rgba(115, 111, 111, 0.25);
+  box-shadow: ${props => props.theme === 'dark' ? '0px 2px 8px rgba(40, 40, 40, 0.15), 0px 0px 2px rgb(68, 68, 68, 0.30)' : '0px 2px 8px rgba(111, 111, 111, 0.15), 0px 0px 2px rgb(34, 34, 34, 0.30)'};
   border-radius: 8px;
   padding: 10px;
   box-sizing: border-box;
@@ -61,6 +61,12 @@ const Wrapper = styled.div`
   cursor: pointer;
 `
 
+const CanvasWrapper = styled.div`
+  width: 230px;
+  height: 105px;
+  user-select: none;
+`
+
 const Image = styled.div`
   width: 36px;
   height: 36px;
@@ -70,6 +76,7 @@ const Image = styled.div`
 
 const MainNavigation = observer(() => {
   const store = useStore()
+  const { settings } = store
   const { socket, request } = useAuth()
   const track = useCurrentTrack({
     socket,
@@ -98,25 +105,54 @@ const MainNavigation = observer(() => {
     presenterMedia
   })
 
+  useEffect(() => {
+    store.isEther = isEther
+  }, [isEther])
+
   const [isPlay, setPlay] = usePlay(setVolumeLocalAudio)
 
   return isEther
             ? (
-              <Body theme={store.settings.theme}>
-                <input type='range' max={3} min={0} step={0.01} value={volumeAudio} onChange={({ target: { value } }) => setVolumeAudio(value)} />
-                <input type='range' max={3} min={0} step={0.01} value={volumeStream} onChange={({ target: { value } }) => setVolumeStream(value)} />
-                <br />
-                <br />
-                <input type='range' max={3} min={0} step={0.01} value={volumeLocalAudio} onChange={({ target: { value } }) => setVolumeLocalAudio(value)} />
-                <input type='range' max={3} min={0} step={0.01} value={volumeLocalStream} onChange={({ target: { value } }) => setVolumeLocalStream(value)} />
+              <Body
+                theme={settings.theme}
+                style={{
+                  height: '125px',
+                  backgroundImage: `url(${settings.theme === 'dark' ? mainMaxNavigationBackgroundDark : mainMaxNavigationBackgroundLight})`
+                }}
+              >
+                <CanvasWrapper>
+                  <SmallText style={{ marginTop: '3px' }} theme={settings.theme}>
+                    Внутренний звук:
+                  </SmallText>
+                  <div style={{ marginTop: '7px', background: '#fa0', height: '27px', width: '180px' }}></div>
+                    <SmallText style={{ marginTop: '7px' }} theme={settings.theme}>
+                      Внутренний микрофон:
+                    </SmallText>
+                    <div style={{ marginTop: '7px', background: '#fa0', height: '27px', width: '180px' }}></div>
+                </CanvasWrapper>
+                <div>
+                  <input type='range' max={3} min={0} step={0.01} value={volumeAudio} onChange={({ target: { value } }) => setVolumeAudio(value)} />
+                  <br />
+                  <input type='range' max={3} min={0} step={0.01} value={volumeStream} onChange={({ target: { value } }) => setVolumeStream(value)} />
+                  <br />
+                  <input type='range' max={3} min={0} step={0.01} value={volumeLocalAudio} onChange={({ target: { value } }) => setVolumeLocalAudio(value)} />
+                  <br />
+                  <input type='range' max={3} min={0} step={0.01} value={volumeLocalStream} onChange={({ target: { value } }) => setVolumeLocalStream(value)} />
+                </div>
               </Body>
             )
             : (
-              <Body theme={store.settings.theme}>
+              <Body
+                theme={settings.theme}
+                style={{
+                  height: '69px',
+                  backgroundImage: `url(${settings.theme === 'dark' ? mainNavigationBackgroundDark : mainNavigationBackgroundLight})`
+                }}
+              >
                 <CanvasRectEffect isPlay={isPlay} />
                 <Profile>
-                  <MiddleText theme={store.settings.theme} style={{ marginBottom: '7px' }}>Сейчас играет:</MiddleText>
-                  <BigText theme={store.settings.theme}>
+                  <MiddleText theme={settings.theme} style={{ marginBottom: '7px' }}>Сейчас играет:</MiddleText>
+                  <BigText theme={settings.theme}>
                     {
                       normalize.text(track.title || track.filename || 'Загрузка..', 38)
                     }
@@ -125,7 +161,7 @@ const MainNavigation = observer(() => {
                 <Wrapper style={{ marginLeft: '10px' }} onClick={() => setPlay(s => !s)}>
                   <Image
                     src={
-                      store.settings.theme === 'dark'
+                      settings.theme === 'dark'
                         ? isPlay
                             ? navigationSoundOnDark
                             : navigationSoundOffDark
@@ -135,7 +171,7 @@ const MainNavigation = observer(() => {
                     }
                   />
                   <SmallText
-                    theme={store.settings.theme}
+                    theme={settings.theme}
                   >
                     {
                       isPlay
@@ -147,7 +183,7 @@ const MainNavigation = observer(() => {
                 <Wrapper style={{ marginLeft: '10px' }} onClick={() => setEther(s => !s)}>
                   <Image
                     src={
-                      store.settings.theme === 'dark' && navigationRecordOnDark
+                      settings.theme === 'dark' && navigationRecordOnDark
                         ? isEther
                             ? navigationRecordOnDark
                             : navigationRecordOffDark
@@ -158,7 +194,7 @@ const MainNavigation = observer(() => {
                   />
                   <SmallText
                     style={{
-                      color: store.settings.theme === 'dark' && '#A2A2A2'
+                      color: settings.theme === 'dark' && '#A2A2A2'
                                 ? isEther
                                     ? '#DF1414'
                                     : '#848484'

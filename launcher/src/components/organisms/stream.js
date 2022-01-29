@@ -80,7 +80,14 @@ const Stream = observer(() => {
 
   return (
     <Body>
-      <Overflow ref={ref}>
+      <Overflow
+        style={{
+          height: store.isEther
+                    ? 'calc(100% - 160px)'
+                    : 'calc(100% - 104px)'
+        }}
+        ref={ref}
+      >
         <SectionTitle theme={store.settings.theme}>Эфир</SectionTitle>
         <Navigation />
         <NotifyItem />
@@ -101,7 +108,13 @@ const Stream = observer(() => {
             )
           })
         }
-        <ShadowBackground />
+        <ShadowBackground
+          style={{
+            bottom: store.isEther
+                      ? '160px'
+                      : '104px'
+          }}
+        />
       </Overflow>
       <MainNavigation />
     </Body>

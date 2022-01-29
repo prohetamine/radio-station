@@ -11,15 +11,17 @@ const Body = styled.div`
   bottom: 104px;
 `
 
-const ShadowBackground = observer(() => {
+const ShadowBackground = observer(({ style }) => {
   const ref = useRef()
   const { settings } = useStore()
   const [image, setImage] = useState('')
+  const [isImageProcessing, setImageProcessing] = useState(true)
 
   useEffect(() => {
     const node = ref.current
     if (node) {
       const handler = () => {
+        setImageProcessing(true)
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
 
@@ -76,6 +78,7 @@ const ShadowBackground = observer(() => {
             setImage(canvas.toDataURL('image/png'))
           }
 
+          setImageProcessing(false)
           img.src = base64data
         }
       }
@@ -84,10 +87,17 @@ const ShadowBackground = observer(() => {
       window.addEventListener('resize', handler)
       return () => window.removeEventListener('resize', handler)
     }
-  }, [ref.current, settings.brightness, settings.backgroundImage])
+  }, [ref.current, settings.brightness, settings.backgroundImage, style])
 
   return (
-    <Body ref={ref} style={{ backgroundImage: `url(${image})` }} />
+    <Body
+      ref={ref}
+      style={{
+        opacity: isImageProcessing ? 0 : 1,
+        backgroundImage: `url(${image})`,
+        ...style
+      }}
+    />
   )
 })
 
