@@ -5,7 +5,7 @@ const path              = require('path')
     , utf8              = require('utf8')
     , pathToName        = require('./utils/path-to-name')
     , convertingTrack   = require('./utils/converting-track')
-    , hash              = require('./utils/hash')
+    , hashByName        = require('./utils/hash-by-name')
     , callback          = require('./utils/callback')
 
 const Tracks = async ({ pathWorkDir, debug }) => {
@@ -142,7 +142,7 @@ const Tracks = async ({ pathWorkDir, debug }) => {
       const isOk = await convertingTrack(parentPath, _path)
 
       if (isOk) {
-        const id = hash()
+        const id = hashByName(name)
 
         trackList[id] = {
           id,
@@ -183,17 +183,25 @@ const Tracks = async ({ pathWorkDir, debug }) => {
           const isOk = await convertingTrack(tempPath, _path)
 
           if (isOk) {
-            const id = hash()
+            const id = hashByName(name)
 
             trackList[id] = { id, path: _path, name: name.replace(/\..+$/, '.mp3') }
 
-            await clean(pathWorkDirTemp)
+            if (await fsPromise.exists(tempPath)) {
+              await fsPromise.unlink(tempPath)
+            }
+
             await onLoad(id)
             resolve(id)
             return
           }
 
-          await clean(pathWorkDirTemp)
+          if (await fsPromise.exists(tempPath)) {
+            await fsPromise.unlink(tempPath)
+          }
+
+          console.log('ERRRORRRRR', name)
+
           await onLoad(null)
           resolve(null)
         })
@@ -248,8 +256,13 @@ const Tracks = async ({ pathWorkDir, debug }) => {
         delete data.native
         delete data.quality
 
-        await onInfo(data)
-        return data
+        const info = {
+          ...track,
+          ...data
+        }
+
+        await onInfo(info)
+        return info
       } catch (err) {
         debug && console.log('info', err)
         delete trackList[track.id]

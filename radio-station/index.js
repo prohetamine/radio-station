@@ -2,6 +2,7 @@ const path          = require('path')
     , fsPromise     = require('fs-extra')
     , CFonts        = require('cfonts')
     , hash          = require('./utils/hash')
+    , md5           = require('md5')
     , sleep         = require('sleep-promise')
     , Tracks        = require('./tracks')
     , Stream        = require('./stream')
@@ -69,6 +70,58 @@ const create = async (
       }
       next()
     })
+
+    app.get('/auth', (req, res) => {
+      const {
+        login: _login = '',
+        password: _password = ''
+      } = req.query
+
+      const isLogin = login.toString() === _login.toString()
+          , isPassword = password.toString() === _password.toString()
+
+      if (
+        !(isLogin && isPassword)
+      ) {
+        res.send(
+          JSON.stringify({
+            isOk: false,
+            token: null
+          })
+        )
+      } else {
+        const token = md5(_login.toString() + _password.toString() + '19988222')
+
+        res.send(
+          JSON.stringify({
+            isOk: true,
+            token
+          })
+        )
+      }
+    })
+
+    app.use('/', (req, res, next) => {
+      const {
+        login: _login = '',
+        password: _password = '',
+        token = null
+      } = req.query
+
+      const isLogin = login.toString() === _login.toString()
+          , isPassword = password.toString() === _password.toString()
+          , isToken = md5(_login.toString() + _password.toString() + '19988222') === md5(login.toString() + password.toString() + '19988222') ||
+                      token === md5(login.toString() + password.toString() + '19988222')
+      if (
+        !((isLogin && isPassword) || isToken)
+      ) {
+        res.status(400)
+        res.send('not auth')
+        return
+      } else {
+        next()
+      }
+    })
   }
 
   const tracks = await Tracks({ pathWorkDir, debug })
@@ -115,15 +168,18 @@ const create = async (
 
   io.on('connection', socket => {
     const {
-      login:_login = '',
-      password:_password = ''
+      login: _login = '',
+      password: _password = '',
+      token = null
     } = socket.handshake.auth
 
     const isLogin = login.toString() === _login.toString()
         , isPassword = password.toString() === _password.toString()
+        , isToken = md5(_login.toString() + _password.toString() + '19988222') === md5(login.toString() + password.toString() + '19988222') ||
+                    token === md5(login.toString() + password.toString() + '19988222')
 
     if (
-      !(isLogin && isPassword)
+      !((isLogin && isPassword) || isToken)
     ) {
       socket.disconnect()
       return

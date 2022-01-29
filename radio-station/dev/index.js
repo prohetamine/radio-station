@@ -16,7 +16,9 @@ RadioStation.create({
   isLauncher: true, // optional
   debug: false, // optional
   dev: true, // optional
-  isAutoStart: false // optional
+  isAutoStart: false, // optional
+  login: 'localhost',
+  password: 'hackme'
 }).then(async radio => {
 
   console.log('')

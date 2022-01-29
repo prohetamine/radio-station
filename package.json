@@ -4,9 +4,9 @@
   "description": "A free radio station on node js with a simple setup and the ability to conduct live broadcasts on the site 🎙 📡",
   "main": "radio-station/index.js",
   "scripts": {
-    "build-launcher": "webpack --config webpack.config.js",
-    "dev-launcher": "MODE=dev webpack-dev-server --config webpack.config.js",
-    "dev-radio-station": "node radio-station/dev/index.js",
+    "launcher-build": "webpack --config webpack.config.js",
+    "launcher-dev": "MODE=dev webpack-dev-server --config webpack.config.js",
+    "radio-station-dev": "node radio-station/dev/index.js",
     "launcher-web-radio": "node examples/launcher-web-radio/index.js",
     "node-web-radio": "node examples/node-web-radio/index.js"
   },
@@ -71,6 +71,9 @@
     "eslint-webpack-plugin": "^3.1.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.0",
+    "mobx": "^6.3.13",
+    "mobx-react": "^7.2.1",
+    "mobx-react-lite": "^3.2.3",
     "music-metadata-browser": "^2.5.3",
     "query-string": "^7.1.0",
     "react": "^17.0.2",

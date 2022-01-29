@@ -20,5 +20,11 @@
     "plugins": [
         "react"
     ],
-    "rules": {}
+    "rules": {
+      "no-unused-vars": "warn",
+      "react/jsx-uses-vars": "warn",
+      "react/jsx-uses-react": "warn",
+      "no-extra-boolean-cast": "off",
+      "react/prop-types": "off"
+    }
 }
