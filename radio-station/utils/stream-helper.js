@@ -116,6 +116,7 @@ const start = async ({ login, password, port, isLauncher, puppeteerLauncher }) =
             resolve()
           }
           reload++
+          noiseAudio.volume = 0.2
           noiseAudio.play()
         }
       }, 500)

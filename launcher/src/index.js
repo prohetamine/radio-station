@@ -39,7 +39,7 @@ const App = observer(() => {
   const { settings, auth } = useStore()
 
   return (
-    <AuthProvider baseURL={'http://127.0.0.1:9933/'} auth={{ login: auth.login, password: auth.password, token: auth.token }}>
+    <AuthProvider baseURL={'http://138.201.204.214:9933/'} auth={{ login: auth.login, password: auth.password, token: auth.token }}>
       <Body theme={settings.theme}>
         {
           !auth.token
