@@ -23,19 +23,8 @@ const Launcher = ({ debug }) => {
     })
 
   const switchLauncher = socket => {
-
-    socket.on('disconnect', () => {
-      console.log('disconnect')
-      onSwitch(false)
-    })
-    socket.on('switch-launcher-off', () => {
-      console.log('switch-launcher-off')
-      onSwitch(false)
-    })
-    socket.on('switch-launcher-on', () => {
-      console.log('switch-launcher-on')
-      onSwitch(true)
-    })
+    socket.on('switch-launcher-off', () => onSwitch(false))
+    socket.on('switch-launcher-on', () => onSwitch(true))
   }
 
   const allTracks = async socket =>
