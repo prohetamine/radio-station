@@ -252,13 +252,16 @@ const Tracks = async ({ pathWorkDir, debug }) => {
       try {
         const data = await mm.parseFile(track.path)
 
+        const isAlbumImage = !!data.common?.picture
+
         delete data.common.picture
         delete data.native
         delete data.quality
 
         const info = {
           ...track,
-          ...data
+          ...data,
+          isAlbumImage
         }
 
         await onInfo(info)
