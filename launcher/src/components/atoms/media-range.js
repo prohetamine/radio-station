@@ -4,7 +4,7 @@ import SmallText from './small-text'
 import roundRect from './../../../utils/round-rect'
 
 const Body = styled.div`
-  width: 50px;
+  width: 60px;
   height: 105px;
   display: flex;
   flex-direction: column;
@@ -20,8 +20,7 @@ const Slider = styled.canvas`
 const MediaRange = ({ value, onChange, max, min, theme, label }) => {
   const ref = useRef()
   const [move, setMove] = useState(0.5)
-  const [down, setDown] = useState(value)
-  const [show, setShow] = useState(false)
+  const [down, setDown] = useState(false)
 
   useEffect(() => {
     setMove((value / max) - min)
@@ -75,13 +74,7 @@ const MediaRange = ({ value, onChange, max, min, theme, label }) => {
   }, [ref.current, max, down])
 
   return (
-    <Body
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-      style={{
-        width: show ? '100px' : '50px',
-      }}
-    >
+    <Body>
       <Slider ref={ref} width={40} height={93} />
       <SmallText theme={theme} style={{ marginTop: '6px' }}>{label}</SmallText>
     </Body>

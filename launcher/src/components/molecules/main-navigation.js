@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import normalize from './../../../utils/normalize'
 import { observer } from 'mobx-react'
@@ -10,7 +10,6 @@ import useMediaSource from './../../hooks/use-media-source'
 import useMediaController from './../../hooks/use-media-controller'
 import useEther from './../../hooks/use-ether'
 import useCurrentTrack from './../../hooks/use-current-track'
-import usePlay from './../../hooks/use-play'
 
 import CanvasAnalyser from './../atoms/canvas-analyser'
 import BigText from './../atoms/big-text'
@@ -100,11 +99,12 @@ const MainNavigation = observer(() => {
     setVolumeLocalAudio,
     setVolumeLocalStream,
     localAudioAnalyser,
-    localStreamAnalyser,
+    streamAnalyser,
+    audioAnalyser,
     presenterMedia
   } = useMediaController(_audio)
 
-  const [isPlay, setPlay] = usePlay(setVolumeLocalAudio)
+  const [isPlay, setPlay] = useState(false)
 
   const [isEther, setEther] = useEther({
     socket,
@@ -129,12 +129,12 @@ const MainNavigation = observer(() => {
               >
                 <CanvasWrapper>
                   <SmallText style={{ marginTop: '3px', marginBottom: '1px' }} theme={settings.theme}>
-                    Внутренний звук:
+                    Внешний звук: (Звук. 2)
                   </SmallText>
                   <CanvasAnalyser
                     style={{ marginTop: '6px' }}
                     isAnalyse={true}
-                    analyser={localAudioAnalyser}
+                    analyser={audioAnalyser}
                     canvas={{
                       width: 180,
                       height: 34,
@@ -144,12 +144,12 @@ const MainNavigation = observer(() => {
                     }}
                   />
                   <SmallText style={{ marginTop: '7px', marginBottom: '1px' }} theme={settings.theme}>
-                    Внутренний микрофон:
+                    Внешний микрофон: (Микр. 2)
                   </SmallText>
                   <CanvasAnalyser
                     style={{ marginTop: '6px' }}
                     isAnalyse={true}
-                    analyser={localStreamAnalyser}
+                    analyser={streamAnalyser}
                     canvas={{
                       width: 180,
                       height: 34,
@@ -165,7 +165,7 @@ const MainNavigation = observer(() => {
                   max={3}
                   min={0}
                   theme={settings.theme}
-                  label='Внеш. звук'
+                  label='Звук 2'
                 />
                 <MediaRange
                   value={volumeLocalAudio}
@@ -173,7 +173,7 @@ const MainNavigation = observer(() => {
                   max={3}
                   min={0}
                   theme={settings.theme}
-                  label='звук'
+                  label='Звук 1'
                 />
                 <MediaRange
                   value={volumeStream}
@@ -181,7 +181,7 @@ const MainNavigation = observer(() => {
                   max={3}
                   min={0}
                   theme={settings.theme}
-                  label='Внеш. микр.'
+                  label='Микр. 2'
                 />
                 <MediaRange
                   value={volumeLocalStream}
@@ -189,7 +189,7 @@ const MainNavigation = observer(() => {
                   max={3}
                   min={0}
                   theme={settings.theme}
-                  label='микрофон'
+                  label='Микр. 1'
                 />
               </Body>
             )
