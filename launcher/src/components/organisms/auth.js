@@ -1,7 +1,7 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { observer } from 'mobx-react'
 import styled from 'styled-components'
-import store from './../../store'
+import useStore from './../../store'
 import { useAuth } from './../../auth-provider.js'
 
 const Body = styled.div`
@@ -15,7 +15,7 @@ const Body = styled.div`
 `
 
 const Auth = observer(() => {
-  const { settings, auth } = useContext(store)
+  const { settings, auth } = useStore()
   const { request } = useAuth()
 
   useEffect(() => {

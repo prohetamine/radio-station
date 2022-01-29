@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import normalize from './../../../utils/normalize'
 import useStore from './../../store'
@@ -52,7 +52,7 @@ const Picture = styled.img`
   width: 73px;
   height: 73px;
   border-radius: 5px;
-  opacity: 0;
+  opacity: 0px;
 `
 
 const Profile = styled.div`
@@ -66,18 +66,16 @@ const Profile = styled.div`
 const StreamItem = observer(({
   onDelete,
   track,
-  isImage,
   count
 }) => {
   const { settings } = useStore()
-  const [isImageError, setImageError] = useState(true)
 
   const title = track.title || track.filename
 
   return (
     <Body type={track.type} theme={settings.theme}>
       {
-        track.type !== 'random' 
+        track.type !== 'random'
           ? (
             <Delete onClick={() => onDelete(track.streamId)} />
           )
@@ -85,7 +83,7 @@ const StreamItem = observer(({
             null
           )
       }
-      <Picture style={{ opacity: isImage ? isImageError ? '0' : '1' : '0' }} onLoad={() => setImageError(false)} draggable={false} src={createUrl({ pathname: 'picture', params: { id: track.id }})} alt={track.id} />
+      <Picture style={{ opacity: (settings.pictureAlbum && track.isAlbumImage) ? 1 : 0 }} draggable={false} src={createUrl({ pathname: 'picture', params: { id: track.id }})} alt={track.id} />
       <Profile>
         {
           track.type === 'queue'

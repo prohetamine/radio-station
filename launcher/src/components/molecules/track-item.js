@@ -56,7 +56,7 @@ const Picture = styled.img`
   width: 104px;
   height: 104px;
   border-radius: 5px;
-  opacity: 0;
+  opacity: 0px;
 `
 
 const Profile = styled.div`
@@ -81,7 +81,6 @@ const TrackItem = observer(({
   const ref = useRef()
   const { settings } = useStore()
   const [grabblePosition, setGrabblePosition] = useState(0)
-  const [isImageError, setImageError] = useState(true)
 
   useEffect(() => {
     const node = ref.current
@@ -104,11 +103,13 @@ const TrackItem = observer(({
     }
   }, [ref.current, grabblePosition, track.id])
 
+  console.log(track.title, track.isAlbumImage)
+
   return (
     <Body theme={settings.theme} ref={ref} draggable>
       <Delete onClick={() => onDelete()} />
       <First>
-        <Picture style={{ opacity: settings.pictureAlbum ? isImageError ? '0' : '1' : '0' }} onLoad={() => setImageError(false)} draggable={false} src={createUrl({ pathname: 'picture', params: { id: track.id }})} alt={track.id} />
+        <Picture style={{ opacity: (settings.pictureAlbum && track.isAlbumImage) ? 1 : 0 }} draggable={false} src={createUrl({ pathname: 'picture', params: { id: track.id }})} alt={track.id} />
         <Profile>
           <SmallText theme={settings.theme} style={{ marginBottom: '7px' }}>Исполнитель: </SmallText>
           <MiddleText theme={settings.theme} style={{ marginBottom: '10px' }}>{track.artist ? normalize.text(track.artist, 19) : 'Не заполненно'}</MiddleText>
