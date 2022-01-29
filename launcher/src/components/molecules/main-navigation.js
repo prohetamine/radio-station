@@ -12,10 +12,11 @@ import useEther from './../../hooks/use-ether'
 import useCurrentTrack from './../../hooks/use-current-track'
 import usePlay from './../../hooks/use-play'
 
-import CanvasRectEffect from './../atoms/canvas-rect-effect'
+import CanvasAnalyser from './../atoms/canvas-analyser'
 import BigText from './../atoms/big-text'
 import MiddleText from './../atoms/middle-text'
 import SmallText from './../atoms/small-text'
+import MediaRange from './../atoms/media-range'
 
 import mainNavigationBackgroundLight from './../../../assets/main-navigation-background-light.svg'
 import mainNavigationBackgroundDark from './../../../assets/main-navigation-background-dark.svg'
@@ -62,9 +63,10 @@ const Wrapper = styled.div`
 `
 
 const CanvasWrapper = styled.div`
-  width: 230px;
+  width: 180px;
   height: 105px;
   user-select: none;
+  font-size: 0px;
 `
 
 const Image = styled.div`
@@ -73,6 +75,7 @@ const Image = styled.div`
   background-image: url(${props => props.src});
   margin-bottom: 4px;
 `
+
 
 const MainNavigation = observer(() => {
   const store = useStore()
@@ -96,20 +99,24 @@ const MainNavigation = observer(() => {
     setVolumeStream,
     setVolumeLocalAudio,
     setVolumeLocalStream,
+    localAudioAnalyser,
+    localStreamAnalyser,
     presenterMedia
   } = useMediaController(_audio)
 
+  const [isPlay, setPlay] = usePlay(setVolumeLocalAudio)
+
   const [isEther, setEther] = useEther({
     socket,
-    setVolumeStream,
     presenterMedia
   })
 
   useEffect(() => {
     store.isEther = isEther
-  }, [isEther])
-
-  const [isPlay, setPlay] = usePlay(setVolumeLocalAudio)
+    if (isEther && setVolumeLocalAudio) {
+      setPlay(true)
+    }
+  }, [isEther, setVolumeLocalAudio])
 
   return isEther
             ? (
@@ -121,24 +128,69 @@ const MainNavigation = observer(() => {
                 }}
               >
                 <CanvasWrapper>
-                  <SmallText style={{ marginTop: '3px' }} theme={settings.theme}>
+                  <SmallText style={{ marginTop: '3px', marginBottom: '1px' }} theme={settings.theme}>
                     Внутренний звук:
                   </SmallText>
-                  <div style={{ marginTop: '7px', background: '#fa0', height: '27px', width: '180px' }}></div>
-                    <SmallText style={{ marginTop: '7px' }} theme={settings.theme}>
-                      Внутренний микрофон:
-                    </SmallText>
-                    <div style={{ marginTop: '7px', background: '#fa0', height: '27px', width: '180px' }}></div>
+                  <CanvasAnalyser
+                    style={{ marginTop: '6px' }}
+                    isAnalyse={true}
+                    analyser={localAudioAnalyser}
+                    canvas={{
+                      width: 180,
+                      height: 34,
+                      bottom: 29,
+                      max: 23,
+                      positions: [6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141]
+                    }}
+                  />
+                  <SmallText style={{ marginTop: '7px', marginBottom: '1px' }} theme={settings.theme}>
+                    Внутренний микрофон:
+                  </SmallText>
+                  <CanvasAnalyser
+                    style={{ marginTop: '6px' }}
+                    isAnalyse={true}
+                    analyser={localStreamAnalyser}
+                    canvas={{
+                      width: 180,
+                      height: 34,
+                      bottom: 29,
+                      max: 23,
+                      positions: [6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141]
+                    }}
+                  />
                 </CanvasWrapper>
-                <div>
-                  <input type='range' max={3} min={0} step={0.01} value={volumeAudio} onChange={({ target: { value } }) => setVolumeAudio(value)} />
-                  <br />
-                  <input type='range' max={3} min={0} step={0.01} value={volumeStream} onChange={({ target: { value } }) => setVolumeStream(value)} />
-                  <br />
-                  <input type='range' max={3} min={0} step={0.01} value={volumeLocalAudio} onChange={({ target: { value } }) => setVolumeLocalAudio(value)} />
-                  <br />
-                  <input type='range' max={3} min={0} step={0.01} value={volumeLocalStream} onChange={({ target: { value } }) => setVolumeLocalStream(value)} />
-                </div>
+                <MediaRange
+                  value={volumeAudio}
+                  onChange={value => setVolumeAudio(value)}
+                  max={3}
+                  min={0}
+                  theme={settings.theme}
+                  label='Внеш. звук'
+                />
+                <MediaRange
+                  value={volumeLocalAudio}
+                  onChange={value => setVolumeLocalAudio(value)}
+                  max={3}
+                  min={0}
+                  theme={settings.theme}
+                  label='звук'
+                />
+                <MediaRange
+                  value={volumeStream}
+                  onChange={value => setVolumeStream(value)}
+                  max={3}
+                  min={0}
+                  theme={settings.theme}
+                  label='Внеш. микр.'
+                />
+                <MediaRange
+                  value={volumeLocalStream}
+                  onChange={value => setVolumeLocalStream(value)}
+                  max={3}
+                  min={0}
+                  theme={settings.theme}
+                  label='микрофон'
+                />
               </Body>
             )
             : (
@@ -149,7 +201,17 @@ const MainNavigation = observer(() => {
                   backgroundImage: `url(${settings.theme === 'dark' ? mainNavigationBackgroundDark : mainNavigationBackgroundLight})`
                 }}
               >
-                <CanvasRectEffect isPlay={isPlay} />
+                <CanvasAnalyser
+                  isAnalyse={isPlay}
+                  analyser={localAudioAnalyser}
+                  canvas={{
+                    width: 49,
+                    height: 49,
+                    bottom: 36,
+                    max: 23,
+                    positions: [11, 16, 21, 26, 31, 36]
+                  }}
+                />
                 <Profile>
                   <MiddleText theme={settings.theme} style={{ marginBottom: '7px' }}>Сейчас играет:</MiddleText>
                   <BigText theme={settings.theme}>

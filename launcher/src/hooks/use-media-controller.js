@@ -1,36 +1,37 @@
 import { useEffect, useState } from 'react'
 import { MediaPresenter } from 'sfmediastream'
+import useLocalStorageState from 'use-local-storage-state'
 
 const useMediaController = (audio) => {
   const [presenterMedia, setPresenterMedia] = useState(null)
-      , [volumeAudio, setVolumeAudio] = useState(0)
-      , [volumeStream, setVolumeStream] = useState(0)
-      , [volumeLocalAudio, setVolumeLocalAudio] = useState(0)
-      , [volumeLocalStream, setVolumeLocalStream] = useState(0)
+      , [volumeAudio, setVolumeAudio] = useLocalStorageState('volume-audio', 0)
+      , [volumeStream, setVolumeStream] = useLocalStorageState('volume-stream', 0)
+      , [volumeLocalAudio, setVolumeLocalAudio] = useLocalStorageState('volume-local-audio', 0)
+      , [volumeLocalStream, setVolumeLocalStream] = useLocalStorageState('volume-local-stream', 0)
 
   useEffect(() => {
-    if (presenterMedia?.audio) {
-      presenterMedia.audio.gain.value = volumeAudio
+    if (presenterMedia?.audioGain) {
+      presenterMedia.audioGain.gain.value = volumeAudio
     }
-  }, [presenterMedia?.audio, volumeAudio])
+  }, [presenterMedia?.audioGain, volumeAudio])
 
   useEffect(() => {
-    if (presenterMedia?.stream) {
-      presenterMedia.stream.gain.value = volumeStream
+    if (presenterMedia?.streamGain) {
+      presenterMedia.streamGain.gain.value = volumeStream
     }
-  }, [presenterMedia?.stream, volumeStream])
+  }, [presenterMedia?.streamGain, volumeStream])
 
   useEffect(() => {
-    if (presenterMedia?.localAudio) {
-      presenterMedia.localAudio.gain.value = volumeLocalAudio
+    if (presenterMedia?.localAudioGain) {
+      presenterMedia.localAudioGain.gain.value = volumeLocalAudio
     }
-  }, [presenterMedia?.localAudio, volumeLocalAudio])
+  }, [presenterMedia?.localAudioGain, volumeLocalAudio])
 
   useEffect(() => {
-    if (presenterMedia?.localStream) {
-      presenterMedia.localStream.gain.value = volumeLocalStream
+    if (presenterMedia?.localStreamGain) {
+      presenterMedia.localStreamGain.gain.value = volumeLocalStream
     }
-  }, [presenterMedia?.localStream, volumeLocalStream])
+  }, [presenterMedia?.localStreamGain, volumeLocalStream])
 
   useEffect(async () => {
     if (audio) {
@@ -43,26 +44,40 @@ const useMediaController = (audio) => {
 
       const destination = context.createMediaStreamDestination()
 
-      const _stream = context.createGain()
-          , _audio = context.createGain()
-          , localStream = context.createGain()
-          , localAudio = context.createGain()
+      const streamGain = context.createGain()
+          , audioGain = context.createGain()
+          , localStreamGain = context.createGain()
+          , localAudioGain = context.createGain()
 
-      _stream.gain.value = 0
-      _audio.gain.value = 1
-      localStream.gain.value = 0
-      localAudio.gain.value = 0
+      const streamAnalyser = context.createAnalyser()
+          , audioAnalyser = context.createAnalyser()
+          , localStreamAnalyser = context.createAnalyser()
+          , localAudioAnalyser = context.createAnalyser()
 
-      streamSourse.connect(_stream)
-      sourceAudio.connect(_audio)
-      streamSourse.connect(localStream)
-      sourceAudio.connect(localAudio)
+      streamGain.gain.value = 0
+      audioGain.gain.value = 0
+      localStreamGain.gain.value = 0
+      localAudioGain.gain.value = 0
 
-      _stream.connect(destination)
-      _audio.connect(destination)
+      streamAnalyser.fftSize = 2048
+      audioAnalyser.fftSize = 2048
+      localStreamAnalyser.fftSize = 2048
+      localAudioAnalyser.fftSize = 2048
 
-      localStream.connect(context.destination)
-      localAudio.connect(context.destination)
+      streamSourse.connect(streamGain)
+      sourceAudio.connect(audioGain)
+      streamSourse.connect(localStreamGain)
+      sourceAudio.connect(localAudioGain)
+
+      streamGain.connect(streamAnalyser)
+      audioGain.connect(audioAnalyser)
+      localStreamGain.connect(localStreamAnalyser)
+      localAudioGain.connect(localAudioAnalyser)
+
+      streamAnalyser.connect(destination)
+      audioAnalyser.connect(destination)
+      localStreamAnalyser.connect(context.destination)
+      localAudioAnalyser.connect(context.destination)
 
       const presenterMedia = new MediaPresenter({
         mediaStream: new MediaStream(destination.stream),
@@ -73,10 +88,14 @@ const useMediaController = (audio) => {
       }, 100)
 
       setPresenterMedia({
-        audio: _audio,
-        stream: _stream,
-        localStream,
-        localAudio,
+        audioGain,
+        streamGain,
+        localStreamGain,
+        localAudioGain,
+        streamAnalyser,
+        audioAnalyser,
+        localStreamAnalyser,
+        localAudioAnalyser,
         presenterMedia
       })
     }

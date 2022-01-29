@@ -102,7 +102,6 @@ const start = async ({ login, password, port, isLauncher, puppeteerLauncher }) =
 
       const streamArray = new Uint8Array(streamAnalyser.frequencyBinCount)
 
-
       let reload = 0
       const intervalId = setInterval(async () => {
         streamAnalyser.getByteTimeDomainData(streamArray)

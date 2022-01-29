@@ -72,8 +72,6 @@ const StreamItem = observer(({
 
   const title = track.title || track.filename
 
-  console.log(settings.pictureAlbum && track.isAlbumImage)
-
   return (
     <Body type={track.type} theme={settings.theme}>
       {

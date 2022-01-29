@@ -7,17 +7,24 @@ const useMediaSource = ({ socket, audio }) => {
       audio.src = window.URL.createObjectURL(mediaSource)
       audio.autoplay = true
 
-      await new Promise(res =>
-        mediaSource.addEventListener('sourceopen', res)
-      )
 
-      const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg')
+      const handlerSourceOpen = () => {
+        const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg')
 
-      socket.on('stream', data =>
-        sourceBuffer.appendBuffer(data)
-      )
+        socket.on('stream', data => {
+          try {
+            sourceBuffer.appendBuffer(data)
+          } catch (e) { /* normal */ }
+        })
+      }
 
-      return () => socket.off('stream')
+      mediaSource.addEventListener('sourceopen', handlerSourceOpen)
+
+      return () => {
+        audio.src = null
+        mediaSource.removeEventListener('sourceopen', handlerSourceOpen)
+        socket.off('stream')
+      }
     }
   }, [socket, audio])
 }
