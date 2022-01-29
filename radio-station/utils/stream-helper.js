@@ -89,6 +89,7 @@ const start = async ({ login, password, port, isLauncher, puppeteerLauncher }) =
       noiseAudio.src = noise
       noiseAudio.loop = true
       noiseAudio.autoplay = true
+      noiseAudio.volume = 0.2
       await new Promise(load => noiseAudio.addEventListener('canplaythrough', load))
       noiseAudio.play()
 
@@ -116,7 +117,6 @@ const start = async ({ login, password, port, isLauncher, puppeteerLauncher }) =
             resolve()
           }
           reload++
-          noiseAudio.volume = 0.2
           noiseAudio.play()
         }
       }, 500)
