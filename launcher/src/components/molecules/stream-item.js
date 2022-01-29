@@ -72,18 +72,28 @@ const StreamItem = observer(({
   const { settings } = useStore()
   const [isImageError, setImageError] = useState(true)
 
+  const title = track.title || track.filename
+
   return (
     <Body type={track.type} theme={settings.theme}>
-      {track.type !== 'random' && <Delete onClick={() => onDelete(track.streamId)} />}
+      {
+        track.type !== 'random' 
+          ? (
+            <Delete onClick={() => onDelete(track.streamId)} />
+          )
+          : (
+            null
+          )
+      }
       <Picture style={{ opacity: isImage ? isImageError ? '0' : '1' : '0' }} onLoad={() => setImageError(false)} draggable={false} src={createUrl({ pathname: 'picture', params: { id: track.id }})} alt={track.id} />
       <Profile>
         {
           track.type === 'queue'
             ? (
               <>
-                <BigText theme={settings.theme} style={{ marginBottom: '12px' }}>{track.title ? normalize.text(track.title, 45) : 'null'}</BigText>
-                <MiddleText theme={settings.theme} style={{ marginBottom: '10px' }}>{track.artist ? normalize.text(track.artist, 50) : 'null'}</MiddleText>
-                <MiddleText theme={settings.theme}>{track.album ? normalize.text(track.album, 50) : 'null'}</MiddleText>
+                <BigText theme={settings.theme} style={{ marginBottom: '12px' }}>{title ? normalize.text(title, 45) : 'Не заполнено'}</BigText>
+                <MiddleText theme={settings.theme} style={{ marginBottom: '10px' }}>{track.artist ? normalize.text(track.artist, 50) : 'Не заполнено'}</MiddleText>
+                <MiddleText theme={settings.theme}>{track.album ? normalize.text(track.album, 50) : 'Не заполнено'}</MiddleText>
               </>
             )
             : (
