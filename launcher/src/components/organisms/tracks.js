@@ -48,7 +48,7 @@ const Tracks = observer(() => {
                 date: null,
                 album: null,
                 title: null,
-                filename: data.name,
+                filename: data ? data.name : null, 
                 isAlbumImage: data.isAlbumImage,
                 ...data.common,
                 id: data.id

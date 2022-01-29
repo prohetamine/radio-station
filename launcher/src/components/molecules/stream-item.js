@@ -52,7 +52,7 @@ const Picture = styled.img`
   width: 73px;
   height: 73px;
   border-radius: 5px;
-  opacity: 0px;
+  opacity: 0;
 `
 
 const Profile = styled.div`
@@ -71,6 +71,8 @@ const StreamItem = observer(({
   const { settings } = useStore()
 
   const title = track.title || track.filename
+
+  console.log(settings.pictureAlbum && track.isAlbumImage)
 
   return (
     <Body type={track.type} theme={settings.theme}>

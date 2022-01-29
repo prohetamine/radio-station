@@ -103,8 +103,6 @@ const TrackItem = observer(({
     }
   }, [ref.current, grabblePosition, track.id])
 
-  console.log(track.title, track.isAlbumImage)
-
   return (
     <Body theme={settings.theme} ref={ref} draggable>
       <Delete onClick={() => onDelete()} />

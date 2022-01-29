@@ -56,6 +56,7 @@ const Stream = observer(() => {
                 album: null,
                 title: null,
                 filename: data ? data.name : null,
+                isAlbumImage: data.isAlbumImage,
                 ...data.common,
                 ...track,
               })
@@ -72,7 +73,6 @@ const Stream = observer(() => {
 
   useEffect(() => {
     const node = ref.current
-
     if (node) {
       node.scrollTo(0, node.scrollHeight)
     }
