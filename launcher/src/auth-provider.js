@@ -18,7 +18,7 @@ const AuthProvider = ({ auth, baseURL, children }) => {
   })
 
   useEffect(() => {
-    const socket = io(baseURL.replace(/^https/, 'http'), {
+    const socket = io(baseURL, {
       transports : ['websocket'],
       auth: {
         login: auth.login,
