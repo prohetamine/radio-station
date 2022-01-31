@@ -38,7 +38,7 @@ const App = observer(() => {
   const { settings, auth } = useStore()
 
   return (
-    <AuthProvider baseURL={window.location.href} auth={{ login: auth.login, password: auth.password, token: auth.token }}>
+    <AuthProvider baseURL={window.location.hostname} auth={{ login: auth.login, password: auth.password, token: auth.token }}>
       <Body theme={settings.theme}>
         {
           !auth.token
