@@ -135,7 +135,7 @@ const Button = styled.div`
 const Navigation = observer(() => {
   const { settings, auth } = useStore()
   const [isThemeMenu, setThemeMenu] = useState(false)
-      , [isSettingMenu, setSettingMenu] = useState(true)
+      , [isSettingMenu, setSettingMenu] = useState(false)
 
   return (
     <Body theme={settings.theme}>
