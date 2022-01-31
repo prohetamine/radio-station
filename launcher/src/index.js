@@ -4,7 +4,6 @@ import { observer } from 'mobx-react'
 import './index.css'
 import styled from 'styled-components'
 import useStore from './store'
-
 import { AuthProvider } from './auth-provider.js'
 
 import Background from './components/atoms/background'
@@ -47,17 +46,18 @@ const App = observer(() => {
               <Auth />
             )
             : (
-              null
+              <>
+                <Background />
+                <Wrapper>
+                  <Favorites />
+                  <SectionLine theme={settings.theme} />
+                  <Stream />
+                  <SectionLine theme={settings.theme} />
+                  <Tracks />
+                </Wrapper>
+              </>
             )
         }
-        <Background />
-        <Wrapper>
-          <Favorites />
-          <SectionLine theme={settings.theme} />
-          <Stream />
-          <SectionLine theme={settings.theme} />
-          <Tracks />
-        </Wrapper>
       </Body>
     </AuthProvider>
   )

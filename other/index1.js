@@ -7,7 +7,7 @@ import useLocalStorageState from 'use-local-storage-state'
 import './index.css'
 import { io } from 'socket.io-client'
 
-import images from './assets/1026-1189x755.jpg'
+import images from './assets/svg/1026-1189x755.jpg'
 //import Favorites from './components/favorites'
 //import Stream from './components/stream'
 //import Tracks from './components/tracks'

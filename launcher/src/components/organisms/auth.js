@@ -3,6 +3,11 @@ import { observer } from 'mobx-react'
 import styled from 'styled-components'
 import useStore from './../../store'
 import { useAuth } from './../../auth-provider.js'
+import backgrounds from './../../../utils/backgrounds'
+
+import Background from './../atoms/background'
+import Login from './../molecules/login'
+import Password from './../molecules/password'
 
 const Body = styled.div`
   width: 100vw;
@@ -10,13 +15,38 @@ const Body = styled.div`
   position: absolute;
   left: 0px;
   top: 0px;
+  z-index: 99999;
   background: #fff;
-  z-index: 999999
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+`
+
+const Wrapper = styled.div`
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 `
 
 const Auth = observer(() => {
-  const { settings, auth } = useStore()
+  const store = useStore()
+  const { settings, auth } = store
   const { request } = useAuth()
+
+  useEffect(() => {
+    if (!settings.backgroundImage) {
+      settings.backgroundImage = backgrounds[parseInt(Math.random() * backgrounds.length)]
+    }
+  }, [settings.backgroundImage, backgrounds])
 
   useEffect(() => {
     if (request && auth.login && auth.password) {
@@ -36,26 +66,29 @@ const Auth = observer(() => {
 
   return (
     <Body theme={settings.theme}>
-      <input
-        type='text'
-        placeholder='login'
-        value={auth.login}
-        onChange={
-          ({ target: { value } }) => {
-            auth.login = value
+      <Wrapper>
+        <Login
+          style={{ width: '300px' }}
+          value={auth.value}
+          placeholder='Логин'
+          onChange={
+            value => {
+              auth.login = value
+            }
           }
-        }
-      />
-      <input
-        type='text'
-        placeholder='password'
-        value={auth.password}
-        onChange={
-          ({ target: { value } }) => {
-            auth.password = value
+        />
+        <Password
+          style={{ width: '300px' }}
+          value={auth.password}
+          placeholder='Пароль'
+          onChange={
+            value => {
+              auth.password = value
+            }
           }
-        }
-      />
+        />
+      </Wrapper>
+      <Background />
     </Body>
   )
 })

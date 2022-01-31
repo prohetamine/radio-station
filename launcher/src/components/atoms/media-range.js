@@ -13,7 +13,7 @@ const Body = styled.div`
 `
 
 const Slider = styled.canvas`
-  background: #848484;
+  background: ${props => props.theme === 'dark' ? '#A1A1A1' : '#848484'};
   border-radius: 5px;
 `
 
@@ -30,7 +30,7 @@ const MediaRange = ({ value, onChange, max, min, theme, label }) => {
     const node = ref.current
     if (node) {
       const ctx = node.getContext('2d')
-      ctx.fillStyle = '#fff'
+      ctx.fillStyle = theme === 'dark' ? '#141414' : '#ffffff'
       const normalize = (69 * move) + 20
       ctx.clearRect(0, 0, 40, 93)
       roundRect(ctx, 4, 93 - normalize, 32, normalize - 4, 5)

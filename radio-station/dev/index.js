@@ -8,7 +8,7 @@ const express         = require('express')
 const server = http.createServer(app)
     , io = new Server(server)
 
-const pathTrack3 = path.join(__dirname, '../../assets/track3.mp3')
+const pathTrack3 = path.join(__dirname, '../../assets/svg/track3.mp3')
 const folder = path.join(__dirname, '../../assets')
 
 RadioStation.create({

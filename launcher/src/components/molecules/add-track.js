@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { arrayBufferToBlob } from 'blob-util'
 
-import addTrackBackgroundLight from './../../../assets/add-track-background-light.svg'
-import addTrackBackgroundDark from './../../../assets/add-track-background-dark.svg'
+import addTrackBackgroundLight from './../../../assets/svg/add-track-background-light.svg'
+import addTrackBackgroundDark from './../../../assets/svg/add-track-background-dark.svg'
 
 import BigText from './../atoms/big-text'
 

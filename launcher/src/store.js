@@ -1,6 +1,5 @@
 import { createContext, useContext } from 'react'
 import { observable, autorun, toJS } from 'mobx'
-import images from './../assets/backgrounds/2.jpg'
 
 let defaultStore = null
 
@@ -18,7 +17,7 @@ try {
       lang: 'ru',
       pictureAlbum: true,
       brightness: 0.4,
-      backgroundImage: images
+      backgroundImage: ''
     },
     tracks: [],
     stream: [],

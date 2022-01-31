@@ -1,38 +1,23 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import useStore from './../../store'
+import backgrounds from './../../../utils/backgrounds'
 import { observer } from 'mobx-react'
 
-import navigationProhetamineLight from './../../../assets/navigation-prohetamine-light.svg'
-import navigationProhetamineDark from './../../../assets/navigation-prohetamine-dark.svg'
-import navigationSettingsLight from './../../../assets/navigation-settings-light.svg'
-import navigationSettingsDark from './../../../assets/navigation-settings-dark.svg'
-import navigationImageYesLight from './../../../assets/navigation-image-yes-light.svg'
-import navigationImageNoLight from './../../../assets/navigation-image-no-light.svg'
-import navigationImageYesDark from './../../../assets/navigation-image-yes-dark.svg'
-import navigationImageNoDark from './../../../assets/navigation-image-no-dark.svg'
-import navigationThemeDarkDark from './../../../assets/navigation-theme-dark-dark.svg'
-import navigationThemeLightDark from './../../../assets/navigation-theme-light-dark.svg'
-import navigationThemeDarkLight from './../../../assets/navigation-theme-dark-light.svg'
-import navigationThemeLightLight from './../../../assets/navigation-theme-light-light.svg'
+import navigationProhetamineLight from './../../../assets/svg/navigation-prohetamine-light.svg'
+import navigationProhetamineDark from './../../../assets/svg/navigation-prohetamine-dark.svg'
+import navigationSettingsLight from './../../../assets/svg/navigation-settings-light.svg'
+import navigationSettingsDark from './../../../assets/svg/navigation-settings-dark.svg'
+import navigationImageYesLight from './../../../assets/svg/navigation-image-yes-light.svg'
+import navigationImageNoLight from './../../../assets/svg/navigation-image-no-light.svg'
+import navigationImageYesDark from './../../../assets/svg/navigation-image-yes-dark.svg'
+import navigationImageNoDark from './../../../assets/svg/navigation-image-no-dark.svg'
+import navigationThemeDarkDark from './../../../assets/svg/navigation-theme-dark-dark.svg'
+import navigationThemeLightDark from './../../../assets/svg/navigation-theme-light-dark.svg'
+import navigationThemeDarkLight from './../../../assets/svg/navigation-theme-dark-light.svg'
+import navigationThemeLightLight from './../../../assets/svg/navigation-theme-light-light.svg'
 
 import SmallText from './../atoms/small-text'
-
-import image0 from './../../../assets/backgrounds/0.jpg'
-import image1 from './../../../assets/backgrounds/1.jpg'
-import image2 from './../../../assets/backgrounds/2.jpg'
-import image3 from './../../../assets/backgrounds/3.jpg'
-import image4 from './../../../assets/backgrounds/4.jpg'
-import image5 from './../../../assets/backgrounds/5.jpg'
-
-const backgrounds = [
-  image0,
-  image1,
-  image2,
-  image3,
-  image4,
-  image5
-]
 
 const Body = styled.div`
   user-select: none;
@@ -125,7 +110,13 @@ const Navigation = observer(() => {
             ? (
               <Menu style={{ cursor: 'default' }} theme={settings.theme} onClick={(e) => e.stopPropagation()} onMouseEnter={() => setMenu(true)} onMouseLeave={() => setMenu(false)}>
                 <input type='range' max={1} min={0} step={0.01} value={settings.brightness} onChange={({ target: { value } }) => settings.brightness = value} />
-                <button onClick={() => { settings.backgroundImage = backgrounds[parseInt(Math.random() * backgrounds.length)] }}>image</button>
+                <button
+                  onClick={
+                    () => {
+                      settings.backgroundImage = backgrounds[parseInt(Math.random() * backgrounds.length)]
+                    }
+                  }
+                >image</button>
               </Menu>
             )
             : (

@@ -29,7 +29,7 @@ const Favorites = observer(() => {
   return (
     <Body>
       <SectionTitle theme={store.settings.theme}>Закладки</SectionTitle>
-      <Search type='favorites' value={search} onChange={value => setSearch(value)}>Поиск 🔎</Search>
+      <Search type='favorites' placeholder='Поиск' value={search} onChange={value => setSearch(value)} />
       {
         store.favorites
           .filter(track => {

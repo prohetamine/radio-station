@@ -13,7 +13,7 @@ const Body = styled.div`
 
 const DOMURL = window.URL || window.webkitURL || window
 
-const Background = observer(() => {
+const Background = observer(({ style }) => {
   const { settings } = useStore()
   const [image, setImage] = useState('')
 
@@ -47,6 +47,7 @@ const Background = observer(() => {
   return (
     <Body
       style={{
+        ...style,
         backgroundImage: `url(${image})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center center'

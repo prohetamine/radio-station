@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import normalize from './../../../utils/normalize'
 import { observer } from 'mobx-react'
@@ -10,6 +10,7 @@ import useMediaSource from './../../hooks/use-media-source'
 import useMediaController from './../../hooks/use-media-controller'
 import useEther from './../../hooks/use-ether'
 import useCurrentTrack from './../../hooks/use-current-track'
+import usePlay from './../../hooks/use-play'
 
 import CanvasAnalyser from './../atoms/canvas-analyser'
 import BigText from './../atoms/big-text'
@@ -17,20 +18,22 @@ import MiddleText from './../atoms/middle-text'
 import SmallText from './../atoms/small-text'
 import MediaRange from './../atoms/media-range'
 
-import mainNavigationBackgroundLight from './../../../assets/main-navigation-background-light.svg'
-import mainNavigationBackgroundDark from './../../../assets/main-navigation-background-dark.svg'
-import mainMaxNavigationBackgroundLight from './../../../assets/main-max-navigation-background-light.svg'
-import mainMaxNavigationBackgroundDark from './../../../assets/main-max-navigation-background-dark.svg'
+import mainNavigationBackgroundLight from './../../../assets/svg/main-navigation-background-light.svg'
+import mainNavigationBackgroundDark from './../../../assets/svg/main-navigation-background-dark.svg'
+import mainMaxNavigationBackgroundLight from './../../../assets/svg/main-max-navigation-background-light.svg'
+import mainMaxNavigationBackgroundDark from './../../../assets/svg/main-max-navigation-background-dark.svg'
 
-import navigationSoundOnLight from './../../../assets/navigation-sound-on-light.svg'
-import navigationSoundOffLight from './../../../assets/navigation-sound-off-light.svg'
-import navigationSoundOnDark from './../../../assets/navigation-sound-on-dark.svg'
-import navigationSoundOffDark from './../../../assets/navigation-sound-off-dark.svg'
+import navigationSoundOnLight from './../../../assets/svg/navigation-sound-on-light.svg'
+import navigationSoundOffLight from './../../../assets/svg/navigation-sound-off-light.svg'
+import navigationSoundOnDark from './../../../assets/svg/navigation-sound-on-dark.svg'
+import navigationSoundOffDark from './../../../assets/svg/navigation-sound-off-dark.svg'
 
-import navigationRecordOnLight from './../../../assets/navigation-record-on-light.svg'
-import navigationRecordOffLight from './../../../assets/navigation-record-off-light.svg'
-import navigationRecordOnDark from './../../../assets/navigation-record-on-dark.svg'
-import navigationRecordOffDark from './../../../assets/navigation-record-off-dark.svg'
+import navigationRecordOnLight from './../../../assets/svg/navigation-record-on-light.svg'
+import navigationRecordOffLight from './../../../assets/svg/navigation-record-off-light.svg'
+import navigationRecordOnDark from './../../../assets/svg/navigation-record-on-dark.svg'
+import navigationRecordOffDark from './../../../assets/svg/navigation-record-off-dark.svg'
+
+const positions = [6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141]
 
 const Body = styled.div`
   user-select: none;
@@ -42,6 +45,8 @@ const Body = styled.div`
   box-sizing: border-box;
   margin-bottom: 8px;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
 `
 
 const Profile = styled.div`
@@ -75,6 +80,12 @@ const Image = styled.div`
   margin-bottom: 4px;
 `
 
+const ColumnButtons = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+`
 
 const MainNavigation = observer(() => {
   const store = useStore()
@@ -104,7 +115,7 @@ const MainNavigation = observer(() => {
     presenterMedia
   } = useMediaController(_audio)
 
-  const [isPlay, setPlay] = useState(false)
+  const [isPlay, setPlay] = usePlay(setVolumeLocalAudio)
 
   const [isEther, setEther] = useEther({
     socket,
@@ -113,10 +124,7 @@ const MainNavigation = observer(() => {
 
   useEffect(() => {
     store.isEther = isEther
-    if (isEther && setVolumeLocalAudio) {
-      setPlay(true)
-    }
-  }, [isEther, setVolumeLocalAudio])
+  }, [isEther])
 
   return isEther
             ? (
@@ -140,7 +148,7 @@ const MainNavigation = observer(() => {
                       height: 34,
                       bottom: 29,
                       max: 23,
-                      positions: [6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141]
+                      positions
                     }}
                   />
                   <SmallText style={{ marginTop: '7px', marginBottom: '1px' }} theme={settings.theme}>
@@ -155,7 +163,7 @@ const MainNavigation = observer(() => {
                       height: 34,
                       bottom: 29,
                       max: 23,
-                      positions: [6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81, 86, 91, 96, 101, 106, 111, 116, 121, 126, 131, 136, 141]
+                      positions
                     }}
                   />
                 </CanvasWrapper>
@@ -191,6 +199,54 @@ const MainNavigation = observer(() => {
                   theme={settings.theme}
                   label='Микр. 1'
                 />
+                <ColumnButtons>
+                  <Wrapper style={{ marginLeft: '10px' }} onClick={() => setPlay(s => !s)}>
+                    <Image
+                      src={
+                        settings.theme === 'dark'
+                          ? (isPlay && volumeLocalAudio !== 0)
+                              ? navigationSoundOnDark
+                              : navigationSoundOffDark
+                          : (isPlay && volumeLocalAudio)
+                              ? navigationSoundOnLight
+                              : navigationSoundOffLight
+                      }
+                    />
+                    <SmallText
+                      theme={settings.theme}
+                    >
+                      {
+                        (isPlay && volumeLocalAudio !== 0)
+                          ? 'Звук'
+                          : 'Мут'
+                      }
+                    </SmallText>
+                  </Wrapper>
+                  <Wrapper style={{ marginLeft: '10px' }} onClick={() => setEther(s => !s)}>
+                    <Image
+                      src={
+                        settings.theme === 'dark' && navigationRecordOnDark
+                          ? isEther
+                              ? navigationRecordOnDark
+                              : navigationRecordOffDark
+                          : isEther
+                              ? navigationRecordOnLight
+                              : navigationRecordOffLight
+                      }
+                    />
+                    <SmallText
+                      style={{
+                        color: settings.theme === 'dark' && '#A2A2A2'
+                                  ? isEther
+                                      ? '#DF1414'
+                                      : '#848484'
+                                  : isEther
+                                      ? '#DF1414'
+                                      : '#A2A2A2'
+                      }}
+                    >Эфир</SmallText>
+                  </Wrapper>
+                </ColumnButtons>
               </Body>
             )
             : (
@@ -224,10 +280,10 @@ const MainNavigation = observer(() => {
                   <Image
                     src={
                       settings.theme === 'dark'
-                        ? isPlay
+                        ? (isPlay && volumeLocalAudio !== 0)
                             ? navigationSoundOnDark
                             : navigationSoundOffDark
-                        : isPlay
+                        : (isPlay && volumeLocalAudio)
                             ? navigationSoundOnLight
                             : navigationSoundOffLight
                     }
@@ -236,7 +292,7 @@ const MainNavigation = observer(() => {
                     theme={settings.theme}
                   >
                     {
-                      isPlay
+                      (isPlay && volumeLocalAudio !== 0)
                         ? 'Звук'
                         : 'Мут'
                     }
@@ -264,7 +320,7 @@ const MainNavigation = observer(() => {
                                     ? '#DF1414'
                                     : '#A2A2A2'
                     }}
-                  >Запись</SmallText>
+                  >Эфир</SmallText>
                 </Wrapper>
               </Body>
             )

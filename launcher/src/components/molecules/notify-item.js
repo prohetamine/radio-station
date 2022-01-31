@@ -3,8 +3,8 @@ import styled from 'styled-components'
 import useStore from './../../store'
 import { observer } from 'mobx-react'
 
-import miniDeleteBackgroundLight from './../../../assets/mini-delete-backgroud-light.svg'
-import miniDeleteBackgroundDark from './../../../assets/mini-delete-backgroud-dark.svg'
+import miniDeleteBackgroundLight from './../../../assets/svg/mini-delete-backgroud-light.svg'
+import miniDeleteBackgroundDark from './../../../assets/svg/mini-delete-backgroud-dark.svg'
 
 const MainBody = styled.div`
   user-select: none;

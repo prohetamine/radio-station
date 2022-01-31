@@ -48,7 +48,7 @@ const Tracks = observer(() => {
                 date: null,
                 album: null,
                 title: null,
-                filename: data ? data.name : null, 
+                filename: data ? data.name : null,
                 isAlbumImage: data.isAlbumImage,
                 ...data.common,
                 id: data.id
@@ -76,7 +76,7 @@ const Tracks = observer(() => {
   return (
     <Body>
       <SectionTitle theme={store.settings.theme}>Треки</SectionTitle>
-      <Search type='tracks' value={search} onChange={value => setSearch(value)}>Поиск 🔎</Search>
+      <Search type='tracks' placeholder='Поиск' value={search} onChange={value => setSearch(value)} />
       <AddTrack
         theme={store.settings.theme}
         onLoad={

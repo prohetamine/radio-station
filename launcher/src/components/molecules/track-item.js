@@ -5,8 +5,8 @@ import { observer } from 'mobx-react'
 import useStore from './../../store'
 import { createUrl } from './../../auth-provider.js'
 
-import trackItemBackgroundLight from './../../../assets/track-item-background-light.svg'
-import trackItemBackgroundDark from './../../../assets/track-item-background-dark.svg'
+import trackItemBackgroundLight from './../../../assets/svg/track-item-background-light.svg'
+import trackItemBackgroundDark from './../../../assets/svg/track-item-background-dark.svg'
 
 import BigText from './../atoms/big-text'
 import SmallText from './../atoms/small-text'
