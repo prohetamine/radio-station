@@ -9,6 +9,7 @@ const Body = styled.div`
   position: absolute;
   left: 0px;
   top: 0px;
+  filter: brightness(${props => props.brightness});
 `
 
 const DOMURL = window.URL || window.webkitURL || window
@@ -24,7 +25,7 @@ const Background = observer(({ style }) => {
           <svg xmlns="http://www.w3.org/2000/svg" width="${window.innerWidth}" height="${window.innerHeight}">
             <foreignObject width="100%" height="100%">
               <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:40px">
-                <div style='width: 100%; height: 100vh; filter: brightness(${settings.brightness}); background-image: url(${settings.backgroundImage}); background-size: cover; background-position: center center;'>
+                <div style='width: 100%; height: 100vh; background-image: url(${settings.backgroundImage}); background-size: cover; background-position: center center;'>
                 </div>
               </div>
             </foreignObject>
@@ -42,10 +43,11 @@ const Background = observer(({ style }) => {
     handler()
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
-  }, [settings.brightness, settings.backgroundImage])
+  }, [settings.backgroundImage])
 
   return (
     <Body
+      brightness={settings.brightness}
       style={{
         ...style,
         backgroundImage: `url(${image})`,

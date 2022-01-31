@@ -9,6 +9,7 @@ const Body = styled.div`
   height: 10px;
   position: absolute;
   bottom: 104px;
+  filter: brightness(${props => props.brightness});
 `
 
 const ShadowBackground = observer(({ style }) => {
@@ -33,7 +34,7 @@ const ShadowBackground = observer(({ style }) => {
             <svg xmlns="http://www.w3.org/2000/svg" width="${window.innerWidth}" height="${window.innerHeight}">
               <foreignObject width="100%" height="100%">
                 <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:40px">
-                  <div style='width: 100%; height: 100vh; filter: brightness(${settings.brightness}); background-image: url(${settings.backgroundImage}); background-size: cover; background-position: center center;'>
+                  <div style='width: 100%; height: 100vh; background-image: url(${settings.backgroundImage}); background-size: cover; background-position: center center;'>
                   </div>
                 </div>
               </foreignObject>
@@ -87,10 +88,11 @@ const ShadowBackground = observer(({ style }) => {
       window.addEventListener('resize', handler)
       return () => window.removeEventListener('resize', handler)
     }
-  }, [ref.current, settings.brightness, settings.backgroundImage, style])
+  }, [ref.current, settings.backgroundImage, style])
 
   return (
     <Body
+      brightness={settings.brightness}
       ref={ref}
       style={{
         opacity: isImageProcessing ? 0 : 1,

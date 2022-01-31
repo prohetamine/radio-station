@@ -17,7 +17,8 @@ try {
       lang: 'ru',
       pictureAlbum: true,
       brightness: 0.4,
-      backgroundImage: ''
+      backgroundImage: '',
+      echoCancellation: false
     },
     tracks: [],
     stream: [],

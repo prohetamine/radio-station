@@ -113,7 +113,7 @@ const MainNavigation = observer(() => {
     streamAnalyser,
     audioAnalyser,
     presenterMedia
-  } = useMediaController(_audio)
+  } = useMediaController(_audio, settings)
 
   const [isPlay, setPlay] = usePlay(setVolumeLocalAudio)
 

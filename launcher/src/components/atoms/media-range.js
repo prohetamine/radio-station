@@ -75,7 +75,7 @@ const MediaRange = ({ value, onChange, max, min, theme, label }) => {
 
   return (
     <Body>
-      <Slider ref={ref} width={40} height={93} />
+      <Slider theme={theme} ref={ref} width={40} height={93} />
       <SmallText theme={theme} style={{ marginTop: '6px' }}>{label}</SmallText>
     </Body>
   )

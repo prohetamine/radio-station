@@ -18,6 +18,7 @@ import navigationThemeDarkLight from './../../../assets/svg/navigation-theme-dar
 import navigationThemeLightLight from './../../../assets/svg/navigation-theme-light-light.svg'
 
 import SmallText from './../atoms/small-text'
+import MiddleText from './../atoms/middle-text'
 
 const Body = styled.div`
   user-select: none;
@@ -52,33 +53,149 @@ const Menu = styled.div`
   position: absolute;
   top: 65px;
   user-select: none;
-  width: 300px;
+  width: 200px;
+  max-height: 300px;
   background: ${props => props.theme === 'dark' ? '#141414' : '#FFFFFF'};
   box-shadow: ${props => props.theme === 'dark' ? '0px 2px 8px rgba(40, 40, 40, 0.15), 0px 0px 2px rgb(68, 68, 68, 0.30)' : '0px 2px 8px rgba(111, 111, 111, 0.15), 0px 0px 2px rgb(34, 34, 34, 0.30)'};
   border-radius: 8px;
   margin-bottom: 14px;
-  padding: 10px 15px;
+  padding: 15px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   z-index: 9999999999;
+  overflow: hidden;
+  overflow-y: scroll;
+`
+
+const ImageSelect = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+`
+
+const ImageOption = styled.div`
+  width: 85px;
+  height: 85px;
+  background-image: url(${props => props.src});
+  background-size: cover;
+  background-position: center center;
+  cursor: pointer;
+`
+
+const Range = styled.input`
+  -webkit-appearance: none;
+  width: 100%;
+  &:focus {
+    outline: none;
+  }
+
+  &::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 36px;
+    cursor: pointer;
+    box-shadow: 0px 0px 0px #000000, 0px 0px 0px #000000;
+    background: ${props => props.theme === 'dark' ? '#A1A1A1' : '#848484'};
+    border-radius: 5px;
+    padding: 4px;
+    box-sizing: border-box;
+    border: 0px solid #000101;
+  }
+
+  &::-webkit-slider-thumb {
+    box-shadow: 0px 0px 0px #000000, 0px 0px 0px #000000;
+    border: 0px solid ${props => props.theme === 'dark' ? '#A1A1A1' : '#848484'};
+    height: 28px;
+    width: 28px;
+    border-radius: 5px;
+    background: ${props => props.theme === 'dark' ? '#141414' : '#ffffff'};
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+`
+
+const Button = styled.div`
+  width: 100%;
+  height: 36px;
+  border-radius: 5px;
+  background: ${props => props.theme === 'dark' ? '#A1A1A1' : '#848484'};
+  color: ${props => props.theme === 'dark' ? '#141414' : '#ffffff'};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 18px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 `
 
 const Navigation = observer(() => {
-  const { settings } = useStore()
-  const [isMenu, setMenu] = useState(false)
+  const { settings, auth } = useStore()
+  const [isThemeMenu, setThemeMenu] = useState(false)
+      , [isSettingMenu, setSettingMenu] = useState(true)
 
   return (
     <Body theme={settings.theme}>
-      <Wrapper style={{ marginLeft: '10px' }} onClick={() => window.open('https://prohetamine.ru', '_blank')}>
+      <Wrapper
+        style={{ marginLeft: '10px' }}
+        onClick={() => window.open('https://prohetamine.ru', '_blank')}
+        onMouseEnter={() => {
+          setThemeMenu(false)
+          setSettingMenu(false)
+        }}
+      >
         <Image src={settings.theme === 'dark' ? navigationProhetamineDark : navigationProhetamineLight} />
         <SmallText theme={settings.theme} style={{ color: settings.theme === 'dark' ? '#848484' : '#A2A2A2' }}>Prohetamine</SmallText>
       </Wrapper>
-      <Wrapper style={{ marginLeft: '10px' }} onClick={() => console.log('lol')}>
+      <Wrapper
+        style={{ marginLeft: '10px', position: 'relative' }}
+        onMouseEnter={() => {
+          setThemeMenu(false)
+          setSettingMenu(true)
+        }}
+      >
         <Image src={settings.theme === 'dark' ? navigationSettingsDark : navigationSettingsLight} />
         <SmallText theme={settings.theme} style={{ color: settings.theme === 'dark' ? '#848484' : '#A2A2A2' }}>Настройки</SmallText>
+        {
+          isSettingMenu
+            ? (
+              <Menu style={{ cursor: 'default' }} theme={settings.theme} onClick={(e) => e.stopPropagation()} onMouseEnter={() => setSettingMenu(true)} onMouseLeave={() => setSettingMenu(false)}>
+                <MiddleText theme={settings.theme} style={{ marginBottom: '8px' }}>Подавление эха</MiddleText>
+                <Button
+                  onClick={() => {
+                    settings.echoCancellation = !settings.echoCancellation
+                    window.location.reload()
+                  }}
+                  theme={settings.theme}
+                >{settings.echoCancellation ? 'Да' : 'Нет'}</Button>
+                <MiddleText theme={settings.theme} style={{ marginTop: '10px', marginBottom: '8px' }}>Авторизация</MiddleText>
+                <Button
+                  onClick={() => {
+                    auth.token = ''
+                    auth.login = ''
+                    auth.password = ''
+                    window.location.reload()
+                  }}
+                  theme={settings.theme}
+                >Выйти</Button>
+              </Menu>
+            )
+            : (
+              null
+            )
+        }
       </Wrapper>
-      <Wrapper style={{ marginLeft: '10px' }} onClick={() => settings.pictureAlbum = !settings.pictureAlbum}>
+      <Wrapper
+        style={{ marginLeft: '10px' }}
+        onClick={() => settings.pictureAlbum = !settings.pictureAlbum}
+        onMouseEnter={() => {
+          setThemeMenu(false)
+          setSettingMenu(false)
+        }}
+      >
         <Image
           src={
             settings.theme === 'dark'
@@ -92,7 +209,14 @@ const Navigation = observer(() => {
         />
         <SmallText theme={settings.theme} style={{ color: settings.theme === 'dark' ? '#848484' : '#A2A2A2' }}>Изображения</SmallText>
       </Wrapper>
-      <Wrapper style={{ marginLeft: '10px', position: 'relative' }} onMouseEnter={() => setMenu(true)} onClick={() => settings.theme = settings.theme === 'dark' ? 'light' : 'dark'}>
+      <Wrapper
+        style={{ marginLeft: '10px', position: 'relative' }}
+        onMouseEnter={() => {
+          setSettingMenu(false)
+          setThemeMenu(true)
+        }}
+        onClick={() => settings.theme = settings.theme === 'dark' ? 'light' : 'dark'}
+      >
         <Image
           src={
             settings.theme === 'dark'
@@ -106,17 +230,27 @@ const Navigation = observer(() => {
         />
         <SmallText theme={settings.theme} style={{ color: settings.theme === 'dark' ? '#848484' : '#A2A2A2' }}>Тема</SmallText>
         {
-          isMenu
+          isThemeMenu
             ? (
-              <Menu style={{ cursor: 'default' }} theme={settings.theme} onClick={(e) => e.stopPropagation()} onMouseEnter={() => setMenu(true)} onMouseLeave={() => setMenu(false)}>
-                <input type='range' max={1} min={0} step={0.01} value={settings.brightness} onChange={({ target: { value } }) => settings.brightness = value} />
-                <button
-                  onClick={
-                    () => {
-                      settings.backgroundImage = backgrounds[parseInt(Math.random() * backgrounds.length)]
-                    }
+              <Menu style={{ cursor: 'default' }} theme={settings.theme} onClick={(e) => e.stopPropagation()} onMouseEnter={() => setThemeMenu(true)} onMouseLeave={() => setThemeMenu(false)}>
+                <MiddleText theme={settings.theme} style={{ marginBottom: '8px' }}>Контраст</MiddleText>
+                <Range theme={settings.theme} type='range' max={1} min={0} step={0.01} value={settings.brightness} onChange={({ target: { value } }) => settings.brightness = value} />
+                <MiddleText theme={settings.theme} style={{ marginTop: '10px', marginBottom: '8px' }}>Фоновая картинка</MiddleText>
+                <ImageSelect>
+                  {
+                    backgrounds.map(
+                      (background, key) => (
+                        <ImageOption
+                          key={key}
+                          src={background}
+                          onClick={() => {
+                            settings.backgroundImage = background
+                          }}
+                        />
+                      )
+                    )
                   }
-                >image</button>
+                </ImageSelect>
               </Menu>
             )
             : (

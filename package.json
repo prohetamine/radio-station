@@ -32,6 +32,7 @@
   },
   "homepage": "https://github.com/prohetamine/radio-station#readme",
   "dependencies": {
+    "@babel/runtime": "^7.16.7",
     "accurate-interval": "^1.0.9",
     "base-64": "^1.0.0",
     "base64-js": "^1.5.1",
@@ -57,6 +58,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.16.12",
+    "@babel/plugin-transform-runtime": "^7.16.10",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-react": "^7.16.7",
     "axios": "^0.25.0",

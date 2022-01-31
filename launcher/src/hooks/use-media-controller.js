@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { MediaPresenter } from 'sfmediastream'
 import useLocalStorageState from 'use-local-storage-state'
 
-const useMediaController = (audio) => {
+const useMediaController = (audio, settings) => {
   const [presenterMedia, setPresenterMedia] = useState(null)
       , [volumeAudio, setVolumeAudio] = useLocalStorageState('volume-audio', 0)
       , [volumeStream, setVolumeStream] = useLocalStorageState('volume-stream', 0)
@@ -83,7 +83,7 @@ const useMediaController = (audio) => {
         mediaStream: new MediaStream(destination.stream),
         audio: {
           channelCount: 2,
-          echoCancellation: false
+          echoCancellation: settings.echoCancellation
         }
       }, 100)
 
