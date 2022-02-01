@@ -101,7 +101,7 @@ const create = async (
       if (
         !((isLogin && isPassword) || isToken)
       ) {
-        res.status(400)
+        res.status(401)
         res.send('not auth')
         return
       } else {
@@ -150,9 +150,7 @@ const create = async (
     app.get('/unload', launcher.unload)
     app.get('/picture', launcher.picture)
     app.get('/info', launcher.info)
-    app.get('/status', res => {
-      res.send('').status(200)
-    })
+    app.get('/status', (req, res) => res.send('').status(200))
   }
 
   io.on('connection', socket => {
