@@ -150,6 +150,9 @@ const create = async (
     app.get('/unload', launcher.unload)
     app.get('/picture', launcher.picture)
     app.get('/info', launcher.info)
+    app.get('/status', res => {
+      res.send('').status(200)
+    })
   }
 
   io.on('connection', socket => {
