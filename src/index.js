@@ -1,5 +1,4 @@
 const path          = require('path')
-    , fsPromise     = require('fs-extra')
     , CFonts        = require('cfonts')
     , hash          = require('./utils/hash')
     , md5           = require('md5')
@@ -57,19 +56,6 @@ const create = async (
 
   if (isLauncher) {
     dev && app.use(cors())
-
-    app.use('/', async (req, res, next) => {
-      const normalizePath = req.url.slice(1).replace(/\/$/, '')
-      const file = normalizePath
-                      ? path.join(__dirname, '../launcher/dist', normalizePath)
-                      : path.join(__dirname, '../launcher/dist', 'index.html')
-
-      if (await fsPromise.exists(file)) {
-        res.sendFile(file)
-        return
-      }
-      next()
-    })
 
     app.get('/auth', (req, res) => {
       const {
