@@ -5,7 +5,7 @@
 
 # Radio Station
 
-> radio-station - an easy way to deploy your radio station and become a radio presenter online.
+> radio-station - an easy way to deploy your radio station and become a radio host online in javascript.
 
 ### Why ?
 I decided that I wanted to be a radio host, but I had no particular desire to understand the existing software and I created my own software, maybe someday it will become a standard, I tried to achieve a better result.
