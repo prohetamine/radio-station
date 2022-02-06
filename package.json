@@ -2,7 +2,7 @@
   "name": "radio-station",
   "version": "0.0.8",
   "description": "A free radio station on node js with a simple setup and the ability to conduct live broadcasts on the site 🎙 📡",
-  "main": "radio-station/index.js",
+  "main": "src/index.js",
   "scripts": {
     "dev": "node dev/index.js",
     "launcher-web-radio": "node examples/launcher-web-radio/index.js",
@@ -45,6 +45,7 @@
     "mp3-header": "^0.1.4",
     "mp3-to-aac": "^1.0.1",
     "music-metadata": "^7.11.6",
+    "my-ip": "^1.1.1",
     "puppeteer": "^13.1.1",
     "sleep": "^6.3.0",
     "sleep-promise": "^9.1.0",

@@ -1033,6 +1033,11 @@ music-metadata@^7.11.6:
     strtok3 "^6.2.4"
     token-types "^4.1.1"
 
+my-ip@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/my-ip/-/my-ip-1.1.1.tgz#ee5f9a303dad68776c1aba7bd62469014e10a498"
+  integrity sha1-7l+aMD2taHdsGrp71iRpAU4QpJg=
+
 nan@^2.14.1:
   version "2.15.0"
   resolved "https://registry.npmjs.org/nan/-/nan-2.15.0.tgz"

@@ -11,15 +11,21 @@ const server = http.createServer(app)
 const pathTrack3 = path.join(__dirname, '../assets/track3.mp3')
 const folder = path.join(__dirname, '../assets')
 
+const port = 8080
+
 RadioStation.create({
   pathWorkDir: path.join(__dirname, 'tracks-data-folder'), // optional
   isLauncher: true, // optional
-  debug: false, // optional
-  dev: true, // optional
+  //debug: false, // optional
+  //dev: true, // optional
   isAutoStart: false, // optional
+  mainPort: port,
   login: 'localhost',
-  password: 'hackme'
+  password: 'hackme',
+
 }).then(async radio => {
+
+  console.log = () => {}
 
   console.log('')
   console.log('---------- radio ----------')
@@ -129,4 +135,4 @@ RadioStation.create({
   app.use('/', express.static(__dirname+'/public'))
 })
 
-server.listen(8080)
+server.listen(port)

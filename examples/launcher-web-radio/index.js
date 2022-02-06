@@ -1,22 +1,25 @@
-const express       = require('express')
-    , app           = express()
-    , http          = require('http')
-    , cors          = require('cors')
-    , path          = require('path')
-    , { Server }    = require('socket.io')
-    , RadioStation  = require('./../../src/radio-station')
+const express         = require('express')
+    , app             = express()
+    , http            = require('http')
+    , path            = require('path')
+    , { Server }      = require('socket.io')
+    , RadioStation    = require('./../../src/index')
 
 const server = http.createServer(app)
     , io = new Server(server)
 
-RadioStation.create({
-  pathWorkDir: path.join(__dirname, '/tracks-data-folder'),
-  login: 'localhost',
-  password: 'hackme',
-  port: 9933
-}).then(radio => {
-  app.use(cors())
+const pathTrack3 = path.join(__dirname, '../../assets/track3.mp3')
+const folder = path.join(__dirname, '../../assets')
 
+const port = 8080
+
+RadioStation.create({
+  pathWorkDir: path.join(__dirname, 'tracks-data-folder'),
+  isLauncher: true,
+  mainPort: port,
+  login: 'localhost',
+  password: 'hackme'
+}).then(radio => {
   app.get('/picture', async (req, res) =>
     radio.picture(req, res)
   )

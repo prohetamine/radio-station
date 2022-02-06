@@ -12,6 +12,7 @@ const path          = require('path')
     , IO            = require('socket.io')
     , cors          = require('cors')
     , splitSlice    = require('split-slice')
+    , myIP          = require('my-ip')
 
 const defaultArgs = {
   create: {
@@ -303,12 +304,12 @@ const create = async (
         env: 'node',
       })
 
-      const launcherHost = `http://127.0.0.1:${port}`
-          , siteHost = `http://127.0.0.1:${mainPort ? mainPort : '%yourport%'}`
+      const siteHost = `http://${myIP()}:${mainPort ? mainPort : '%yourport%'}`
+          , launcherHost = `${myIP()}:${port}`
 
-      const messageLauncherHost = isLauncher ? `Launcher url: ${launcherHost}${' '.repeat(32-launcherHost.length)}|login: ${login}${' '.repeat(39-login.length)}|password: ${password}${' '.repeat(36-password.length)}|` : ''
+      const messageLauncher = isLauncher ? `Auth:${' '.repeat(43)}|host: ${launcherHost}${' '.repeat(39-launcherHost.length)}|login: ${login}${' '.repeat(39-login.length)}|password: ${password}${' '.repeat(36-password.length)}||` : ''
 
-      CFonts.say(`${messageLauncherHost}Site url: ${siteHost}${' '.repeat(35-siteHost.length)}`, {
+      CFonts.say(`${messageLauncher}Site url: ${siteHost}${' '.repeat(38-siteHost.length)}`, {
         font: 'console',
         align: 'center',
         colors: ['yellow'],
