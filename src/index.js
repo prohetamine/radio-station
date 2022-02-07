@@ -17,7 +17,6 @@ const path          = require('path')
 const defaultArgs = {
   create: {
     pathWorkDir: path.join(__dirname, 'station'),
-    pathLauncher: path.join(__dirname, 'public'),
     isLauncher: true,
     port: 9933,
     login: `localhost_${hash().slice(0, 16)}`,
@@ -28,7 +27,7 @@ const defaultArgs = {
       args: ['--no-sandbox']
     },
     debug: false,
-    mainPort: null
+    mainPort: false
   },
   onUse: {
     isSafe: true
@@ -38,7 +37,6 @@ const defaultArgs = {
 const create = async (
   {
     pathWorkDir = defaultArgs.create.pathWorkDir,
-    pathLauncher = defaultArgs.create.pathLauncher,
     isLauncher = defaultArgs.create.isLauncher,
     port = defaultArgs.create.port,
     login = defaultArgs.create.login,
@@ -116,7 +114,7 @@ const create = async (
   let launcher = null
 
   if (isLauncher) {
-    launcher = await Launcher({ pathLauncher, login, password, port, debug })
+    launcher = await Launcher({ debug })
   }
 
   if (isLauncher) {
