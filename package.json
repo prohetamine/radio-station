@@ -30,8 +30,6 @@
   },
   "homepage": "https://github.com/prohetamine/radio-station#readme",
   "dependencies": {
-    "@babel/runtime": "^7.16.7",
-    "accurate-interval": "^1.0.9",
     "base-64": "^1.0.0",
     "base64-js": "^1.5.1",
     "cfonts": "^2.10.0",
