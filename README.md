@@ -107,7 +107,7 @@ const { create } = require('radio-station')
 
 #### <a name="track">track</a>
 
-Объект [track](#track) работает с файловой системой, имеет функции [load](#load), [loads](#loads), [onLoad](#onload), [unload](#unload), [onUnload](#onunload), [all](#tracksall), [find](#find), [info](#info), [picture](#picture).
+Объект [track](#radiostation) работает с файловой системой, имеет функции [load](#load), [loads](#loads), [onLoad](#onload), [unload](#unload), [onUnload](#onunload), [all](#tracksall), [find](#find), [info](#info), [picture](#picture).
 
 #### <a name="load">load</a>
 
@@ -353,7 +353,7 @@ const { create } = require('radio-station')
 
 #### <a name="stream">stream</a>
 
-Объект [stream](#stream) работает с эфиром, имеет функции [start](#start), [onStart](#onstart), [push](#push), [onPush](#onpush), [pop](#pop), [onPop](#onpop), [all](#streamall), [current](#current), [onUse](#onuse).
+Объект [stream](#radiostation) работает с эфиром, имеет функции [start](#start), [onStart](#onstart), [push](#push), [onPush](#onpush), [pop](#pop), [onPop](#onpop), [all](#streamall), [current](#current), [onUse](#onuse).
 
 #### <a name="start">start</a>
 
