@@ -44,8 +44,6 @@
     "json-fixer": "^1.6.13",
     "md5": "^2.3.0",
     "moment": "^2.29.1",
-    "mp3-header": "^0.1.4",
-    "mp3-to-aac": "^1.0.1",
     "music-metadata": "^7.11.6",
     "my-ip": "^1.1.1",
     "puppeteer": "^13.1.1",
