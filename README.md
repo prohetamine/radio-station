@@ -42,7 +42,7 @@ I recommend looking at the examples of work right away before trying to use the 
 
 #### <a name="radiostation">RadioStation</a>
 
-Объект [RadioStation](#radiostation) имеет только один метод create который является промисом и возвращает объекты: [track](#track), [stream](#stream) и функции: [addListener](#addlistener), [picture](#picture), [info](#info), [onUse](#onuse).
+Объект [RadioStation](#radiostation) имеет только один метод create который является промисом и возвращает объекты: [track](#track), [stream](#stream) и функции: [addListener](#minimal), [picture](#minimal), [info](#minimal), [onUse](#minimal).
 
 ##### object
 
@@ -102,6 +102,38 @@ const { create } = require('radio-station')
       onUse: [AsyncFunction: onUse],
     }
   */
+})()
+```
+
+#### <a name="minimal">minimal</a>
+
+Полный рабочий пример [node-web-radio](https://github.com/prohetamine/node-web-radio)
+
+```javascript
+;(async () => {
+  const radio = await RadioStation.create({ /* ... */ })
+
+  await radio.track.loads(
+    path.join(__dirname, '/tracks-for-load')
+  )
+
+  app.get('/radio', (req, res) => {
+    radio.addListener(req, res)
+  })
+
+  io.on('connection', async socket => {
+    radio.onUse(info => {
+      socket.emit('onUse', info)
+    })
+  })
+
+  app.get('/picture', async (req, res) => {
+    radio.picture(req, res)
+  })
+
+  app.get('/info', async (req, res) => {
+    radio.info(req, res)
+  })
 })()
 ```
 
