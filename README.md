@@ -30,8 +30,6 @@ or
 $ npm install https://github.com/prohetamine/radio-station
 ```
 
-In addition, you should also install [ffmpeg](https://ffmpeg.org/download.html) and puppeteer and make sure that they are available and working.
-
 ### Examples and description
 
 Connecting the module

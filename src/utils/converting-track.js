@@ -1,8 +1,9 @@
 const mm          = require('music-metadata')
     , { spawn }   = require('child_process')
+    , pathToFfmpeg = require('ffmpeg-static');
 
 const convertingTrack = (oldTrack, newTrack) => new Promise(validTrack => {
-  const ffmpeg = spawn('ffmpeg', ['-i', oldTrack, '-acodec', 'mp3', '-ar', '48000', '-ac', '2', newTrack])
+  const ffmpeg = spawn(pathToFfmpeg, ['-i', oldTrack, '-acodec', 'mp3', '-ar', '48000', '-ac', '2', newTrack])
 
   ffmpeg.stdout.on('data', () => {
     /* none */
