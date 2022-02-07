@@ -51,9 +51,9 @@ I recommend looking at the examples of work right away before trying to use the 
 | pathWorkDir | text | ./station | нет | рабочая папка с треками и другими системными записями |
 | isLauncher | boolean | true | нет | активация лаунчера |
 | port | number | 9933 | нет | внутренний системный порт используется также для подключения к лаунчеру |
-| login | text | <random> | нет | используется для авторизации в лаунчере |
-| password | text | <random> | нет | используется для авторизации в лаунчере |
-| isAutoStart | boolean | <random> | нет | отвечает за автоматический старт |
+| login | text | *random* | нет | используется для авторизации в лаунчере |
+| password | text | *random* | нет | используется для авторизации в лаунчере |
+| isAutoStart | boolean | *random* | нет | отвечает за автоматический старт |
 | puppeteerLauncher | object | { headless: true, args: ['--no-sandbox'] } | нет | объект лаунчера puppeteer |
 | debug | boolean | false | нет | включает режим отладки |
 | mainPort | number | false | нет | выводит основной порт в консоль |
