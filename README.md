@@ -27,7 +27,7 @@ $ yarn add radio-station
 or
 
 ```sh
-$ yarn add https://github.com/prohetamine/radio-station
+$ npm install https://github.com/prohetamine/radio-station
 ```
 
 In addition, you should also install [ffmpeg](https://ffmpeg.org/download.html) and puppeteer and make sure that they are available and working.
