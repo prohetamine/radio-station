@@ -260,9 +260,9 @@ const { create } = require('radio-station')
 
   const loadId = await radio.track.load('/path.mp3')
 
-  const fullInfo = radio.track.find(loadId)
+  const systemInfo = radio.track.find(loadId)
 
-  console.log(fullInfo)
+  console.log(systemInfo)
 
   /*
     {
@@ -277,7 +277,7 @@ const { create } = require('radio-station')
 
 #### <a name="info">info</a>
 
-Функция [info](#info) возвращает информацию о всех треках в файловой системе в виде массива с объектами.
+Функция [info](#info) возвращает полную информацию о файле, принимает параметром ```id```, возвращает объект или ```null```.
 
 ```javascript
 const { create } = require('radio-station')
@@ -287,22 +287,69 @@ const { create } = require('radio-station')
 
   const loadId = await radio.track.load('/path.mp3')
 
-  const fullInfo = radio.track.find(loadId)
+  const fullInfo = await radio.track.info(loadId)
 
   console.log(fullInfo)
 
   /*
     {
-      id: '629cf251fad1890d8ffea3c6f5b19cf5',
-      path: '/path.mp3',
-      parentPath: '/path.mp3',
-      name: 'path.mp3'
+      id: 'de40e284351ed735b5c4a8cb73cc036a',
+      path: 'track.mp3',
+      parentPath: 'track.mp3',
+      name: 'track.mp3',
+      format: {
+        tagTypes: ['ID3v2.4'],
+        trackInfo: [],
+        lossless: false,
+        container: 'MPEG',
+        codec: 'MPEG 1 Layer 3',
+        sampleRate: 48000,
+        numberOfChannels: 2,
+        bitrate: 128000,
+        codecProfile: 'CBR',
+        duration: 195.624
+      },
+      common: {
+        track: { no: 2, of: null },
+        disk: { no: null, of: null },
+        movementIndex: {},
+        title: '...',
+        artists: [ '...' ],
+        artist: '...',
+        album: '...',
+        encodersettings: 'Lavf58.76.100'
+      },
+      isAlbumImage: true
     }
   */
 })()
 ```
 
+#### <a name="picture">picture</a>
 
+Функция [picture](#picture) принимает параметром ```id```, возвращает объект или ```null```.
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const loadId = await radio.track.load('/path.mp3')
+
+  const picture = await radio.track.picture(loadId)
+
+  console.log(picture)
+
+  /*
+    {
+      contentType: 'image/png',
+      contentLength: 121291,
+      buffer: <Buffer 89 50 00 ... 121241 more bytes>
+    }
+  */
+})()
+```
 
 ### Contacts
 
