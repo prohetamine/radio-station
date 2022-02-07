@@ -42,7 +42,7 @@ I recommend looking at the examples of work right away before trying to use the 
 
 #### <a name="radiostation">RadioStation</a>
 
-Объект [RadioStation](#radiostation) имеет только один метод create
+Объект [RadioStation](#radiostation) имеет только один метод create который является промисом и возвращает объекты: [track](#track), [stream](#stream) и функции: [addListener](#addlistener), [picture](#picture), [info](#info), [onUse](#onuse) 
 
 ##### object
 
@@ -69,8 +69,43 @@ const { create } = require('radio-station')
     login: 'localhost',
     password: 'hackme',
   })
+
+  console.log(radio)
+
+  /*
+    {
+      track: {
+        load: [AsyncFunction: load],
+        loads: [AsyncFunction: loads],
+        unload: [AsyncFunction: unload],
+        all: [Function: all],
+        find: [Function: find],
+        info: [AsyncFunction: info],
+        picture: [AsyncFunction: picture],
+        onLoad: [Function (anonymous)],
+        onUnload: [Function (anonymous)]
+      },
+      stream: {
+        start: [Function: start],
+        pop: [Function: pop],
+        push: [AsyncFunction: push],
+        current: [Function: current],
+        all: [Function: all],
+        onStart: [Function (anonymous)],
+        onPush: [Function (anonymous)],
+        onPop: [Function (anonymous)],
+        onUse: [Function (anonymous)]
+      },
+      addListener: [Function: addListener],
+      picture: [AsyncFunction: picture],
+      info: [AsyncFunction: info],
+      onUse: [AsyncFunction: onUse],
+    }
+  */
 })()
 ```
+
+
 
 ### Contacts
 
