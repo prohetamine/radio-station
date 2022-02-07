@@ -182,8 +182,6 @@ const Tracks = async ({ pathWorkDir, debug }) => {
         tempFile.on('finish', async () => {
           const isOk = await convertingTrack(tempPath, _path)
 
-          console.log(isOk)
-
           if (isOk) {
             const id = hashByName(name)
 
@@ -201,8 +199,6 @@ const Tracks = async ({ pathWorkDir, debug }) => {
           if (await fsPromise.exists(tempPath)) {
             await fsPromise.unlink(tempPath)
           }
-
-          console.log('ERRRORRRRR', name)
 
           await onLoad(null)
           resolve(null)
