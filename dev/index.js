@@ -23,9 +23,6 @@ RadioStation.create({
   password: 'hackme',
 
 }).then(async radio => {
-
-  console.log = () => {}
-
   console.log('')
   console.log('---------- radio ----------')
 

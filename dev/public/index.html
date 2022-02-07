@@ -8,7 +8,7 @@
   <title>Radio Station</title>
 </head>
 <body>
-  <img id='picture' width='200' height='200' />
+  <img id='picture' width='200' height='200' src='/default-picture.png' />
   <br />
   <audio controls disableRemotePlayback='true' x-webkit-airplay='allow' preload='none'>
     <source src='/radio' type='audio/webm'></source>
@@ -49,23 +49,15 @@
         console.log('--> fullCurrent', fullCurrent)
 
         if (!fullCurrent.common) {
-          title.innerText = 'Noname'
-          artist.innerText = 'Noname'
-          album.innerText = 'Noname'
+          title.innerText = 'Not'
+          artist.innerText = 'Not'
+          album.innerText = 'Not'
           return
         }
 
-        if (fullCurrent.common.title) {
-          title.innerText = fullCurrent.common.title
-        }
-
-        if (fullCurrent.common.artist) {
-          artist.innerText = fullCurrent.common.artist
-        }
-
-        if (fullCurrent.common.album) {
-          album.innerText = fullCurrent.common.album
-        }
+        title.innerText = fullCurrent.common.title || 'Not'
+        artist.innerText = fullCurrent.common.artist || 'Not'
+        album.innerText = fullCurrent.common.album || 'Not'
       })
     })
   </script>
