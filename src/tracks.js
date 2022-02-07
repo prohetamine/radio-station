@@ -182,6 +182,8 @@ const Tracks = async ({ pathWorkDir, debug }) => {
         tempFile.on('finish', async () => {
           const isOk = await convertingTrack(tempPath, _path)
 
+          console.log(isOk)
+
           if (isOk) {
             const id = hashByName(name)
 
