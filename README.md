@@ -42,7 +42,7 @@ I recommend looking at the examples of work right away before trying to use the 
 
 #### <a name="radiostation">RadioStation</a>
 
-Объект [RadioStation](#radiostation) имеет только один метод create который является промисом и возвращает объекты: [track](#track), [stream](#stream) и функции: [addListener](#minimal), [picture](#minimal), [info](#minimal), [onUse](#minimal).
+Объект [RadioStation](#radiostation) имеет только один метод create который является промисом и возвращает объекты: [track](#track), [stream](#stream) и функции: [addListener](#classic), [picture](#classic), [info](#classic), [onUse](#classic).
 
 ##### object
 
@@ -105,7 +105,7 @@ const { create } = require('radio-station')
 })()
 ```
 
-#### <a name="minimal">minimal</a>
+#### <a name="classic">classic</a>
 
 Полный рабочий пример [node-web-radio](https://github.com/prohetamine/node-web-radio)
 
