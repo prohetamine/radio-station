@@ -105,120 +105,6 @@ const { create } = require('radio-station')
 })()
 ```
 
-#### <a name="stream">stream</a>
-
-Объект [stream](#stream) работает с эфиром, имеет функции [start](#start), [onStart](#onstart), [push](#push), [onPush](#onpush), [pop](#pop), [onPop](#onpop), [all](#streamall), [current](#current), [onUse](#onuse).
-
-#### <a name="start">start</a>
-
-Функция [stream.start](#stream) запускает стрим если в [RadioStation](#radiostation) ```isAutoStart``` имеет значение ```false```, возвращает ```true``` или ```false``` как ошибку, также имеет обработчик события загрузки [stream.onStart](#onstart) который срабатывает независимо от вызова функции [stream.start](#stream).
-
-```javascript
-const { create } = require('radio-station')
-
-;(async () => {
-  const radio = await create({ /* ... */ })
-
-  const isStart = radio.stream.start()
-  await new Promise(radio.stream.onStart)
-  console.log(isStart) // true
-})()
-```
-
-#### <a name="onstart">onStart</a>
-
-Функция [stream.onStart](#stream) обрабатывает запуск трансляции, принимает параметром callback.
-
-```javascript
-const { create } = require('radio-station')
-
-;(async () => {
-  const radio = await create({ /* ... */ })
-
-  radio.track.onStart(() => {
-    console.log('start stream!')
-  })
-})()
-```
-
-#### <a name="push">push</a>
-
-Функция [stream.push](#push) формирует очередь из треков добавляя трек в конец очереди, принимает ```id```, возвращает ```streamId``` загруженного трека или ```null``` как ошибку, также имеет обработчик события [stream.onPush](#onpush).
-
-```javascript
-const { create } = require('radio-station')
-
-;(async () => {
-  const radio = await create({ /* ... */ })
-
-  const loadId = await radio.track.load('path.mp3')
-
-  const streamId = await radio.stream.push(loadId)
-
-  console.log(streamId) // 36ed07fd2438271197e37420b582c6f575608bcb1580ff21675311e1913a035e
-})()
-```
-
-#### <a name="onpush">onPush</a>
-
-Функция [stream.onPush](#stream) обрабатывает любое добавление трека в очередь, даже с учетом добавления через лаунчер, первым параметром принимает callback, в callback передает ```streamId``` загруженного трека или ```null``` как ошибку.
-
-```javascript
-const { create } = require('radio-station')
-
-;(async () => {
-  const radio = await create({ /* ... */ })
-
-  radio.track.onPush(streamId => {
-    console.log(streamId)
-  })
-
-  const loadId = await radio.track.load('path.mp3')
-  const streamId = await radio.track.push(loadId)
-
-  radio.stream.push(streamId)
-})()
-```
-
-#### <a name="pop">pop</a>
-
-Функция [stream.pop](#pop) удаляет трек из очереди, принимает ```streamId```, возвращает ```streamId``` удаленного трека или ```null``` как ошибку, также имеет обработчик события [stream.onPop](#onpop).
-
-```javascript
-const { create } = require('radio-station')
-
-;(async () => {
-  const radio = await create({ /* ... */ })
-
-  const loadId = await radio.track.load('path.mp3')
-
-  const streamId = await radio.stream.push(loadId)
-  const popStreamId = await radio.stream.pop(streamId)
-
-  console.log(popStreamId) // 36ed07fd2438271197e37420b582c6f575608bcb1580ff21675311e1913a035e
-})()
-```
-
-#### <a name="onpop">onPop</a>
-
-Функция [stream.onPop](#stream) обрабатывает любое удаление трека из очереди, даже с учетом удаления через лаунчер, первым параметром принимает callback, в callback передает ```streamId``` загруженного трека или ```null``` как ошибку.
-
-```javascript
-const { create } = require('radio-station')
-
-;(async () => {
-  const radio = await create({ /* ... */ })
-
-  radio.track.onPop(streamId => {
-    console.log(streamId)
-  })
-
-  const loadId = await radio.track.load('path.mp3')
-  const streamId = await radio.track.push(loadId)
-  radio.stream.pop(streamId)
-})()
-```
-
 #### <a name="track">track</a>
 
 Объект [track](#track) работает с файловой системой, имеет функции [load](#load), [loads](#loads), [onLoad](#onload), [unload](#unload), [onUnload](#onunload), [all](#tracksall), [find](#find), [info](#info), [picture](#picture).
@@ -462,6 +348,219 @@ const { create } = require('radio-station')
       buffer: <Buffer 89 50 00 ... 121241 more bytes>
     }
   */
+})()
+```
+
+#### <a name="stream">stream</a>
+
+Объект [stream](#stream) работает с эфиром, имеет функции [start](#start), [onStart](#onstart), [push](#push), [onPush](#onpush), [pop](#pop), [onPop](#onpop), [all](#streamall), [current](#current), [onUse](#onuse).
+
+#### <a name="start">start</a>
+
+Функция [stream.start](#stream) запускает стрим если в [RadioStation](#radiostation) ```isAutoStart``` имеет значение ```false```, возвращает ```true``` или ```false``` как ошибку, также имеет обработчик события загрузки [stream.onStart](#onstart) который срабатывает независимо от вызова функции [stream.start](#stream).
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const isStart = radio.stream.start()
+  await new Promise(radio.stream.onStart)
+  console.log(isStart) // true
+})()
+```
+
+#### <a name="onstart">onStart</a>
+
+Функция [stream.onStart](#stream) обрабатывает запуск трансляции, принимает параметром callback.
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  radio.track.onStart(() => {
+    console.log('start stream!')
+  })
+})()
+```
+
+#### <a name="push">push</a>
+
+Функция [stream.push](#push) формирует очередь из треков добавляя трек в конец очереди, принимает ```id```, возвращает ```streamId``` загруженного трека или ```null``` как ошибку, также имеет обработчик события [stream.onPush](#onpush).
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const loadId = await radio.track.load('path.mp3')
+  const streamId = await radio.stream.push(loadId)
+
+  console.log(streamId) // 36ed07fd2438271197e37420b582c6f575608bcb1580ff21675311e1913a035e
+})()
+```
+
+#### <a name="onpush">onPush</a>
+
+Функция [stream.onPush](#stream) обрабатывает любое добавление трека в очередь, даже с учетом добавления через лаунчер, первым параметром принимает callback, в callback передает ```streamId``` загруженного трека или ```null``` как ошибку.
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  radio.track.onPush(streamId => {
+    console.log(streamId)
+  })
+
+  const loadId = await radio.track.load('path.mp3')
+  const streamId = await radio.stream.push(loadId)
+
+  radio.stream.push(streamId)
+})()
+```
+
+#### <a name="pop">pop</a>
+
+Функция [stream.pop](#pop) удаляет трек из очереди, принимает ```streamId```, возвращает ```streamId``` удаленного трека или ```null``` как ошибку, также имеет обработчик события [stream.onPop](#onpop).
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const loadId = await radio.track.load('path.mp3')
+
+  const streamId = await radio.stream.push(loadId)
+  const popStreamId = await radio.stream.pop(streamId)
+
+  console.log(popStreamId) // 36ed07fd2438271197e37420b582c6f575608bcb1580ff21675311e1913a035e
+})()
+```
+
+#### <a name="onpop">onPop</a>
+
+Функция [stream.onPop](#stream) обрабатывает любое удаление трека из очереди, даже с учетом удаления через лаунчер, первым параметром принимает callback, в callback передает ```streamId``` загруженного трека или ```null``` как ошибку.
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  radio.track.onPop(streamId => {
+    console.log(streamId) // 36ed07fd2438271197e37420b582c6f575608bcb1580ff21675311e1913a035e
+  })
+
+  const loadId = await radio.track.load('path.mp3')
+  const streamId = await radio.stream.push(loadId)
+  radio.stream.pop(streamId)
+})()
+```
+
+#### <a name="streamall">all</a>
+
+Функция [stream.all](#stream) возвращает информацию о всех треках в очереди виде массива с объектами. Имеет три типа треков. ```random```, ```queue```, ```error```.
+
+| тип | информация о типе |
+| ------ | ------ |
+| random | трек подбирается случайно, динамический тип трека, появляется в момент отсутствия очереди |
+| queue | трек находящийся в очереди |
+| error | трек удален или поврежден |
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const tracks = radio.stream.all()
+  console.log(tracks)
+
+  /*
+    [
+      {
+        id: '1de781bc71488694434557166e3f8c51',
+        path: 'track1.mp3',
+        parentPath: 'track1.mp3',
+        name: 'track1.mp3',
+        type: 'random'
+      },
+      {
+        id: '1de781bc71488694434557166e3f8c51',
+        path: 'track2.mp3',
+        parentPath: 'track2.mp3',
+        name: 'track2.mp3',
+        streamId: 'f365c82f7bbe33cf52e60be959f4741adf08d63db0df8e080ef8585d56ce0b29',
+        type: 'queue'
+      },
+      {
+        id: '1de781bc71488694434557166e3f8c51',
+        path: 'track2.mp3',
+        parentPath: 'track2.mp3',
+        name: 'track2.mp3',
+        streamId: 'f365c82f7bbe33cf52e60be959f4741adf08d63db0df8e080ef8585d56ce0b29',
+        type: 'error'
+      }
+    ]
+  */
+})()
+```
+
+#### <a name="current">current</a>
+
+Функция [current](#current) возвращает информацию о текущем треке в эфире в виде объекта или ```null``` как ошибка, можно считать обработчиком события [stream.onUse](#onuse).
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const track = radio.track.current()
+
+  console.log(track)
+
+  /*
+    {
+      id: '1de781bc71488694434557166e3f8c51',
+      path: '/track1.mp3',
+      parentPath: '/track1.mp3',
+      name: 'track1.mp3',
+      type: 'random'
+    }
+  */
+})()
+```
+
+#### <a name="onuse">onUse</a>
+
+Функция [stream.onUse](#stream) обрабатывает обновление текущего трека, первым параметром принимает callback, в callback передает первым параметром позицию в очереди, вторым информацию о треке.
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  radio.stream.onUse((index, track) => {
+    console.log(index, track)
+    /*
+    0 {
+      id: '1de781bc71488694434557166e3f8c51',
+      path: '/track1.mp3',
+      parentPath: '/track1.mp3',
+      name: 'track1.mp3',
+      type: 'random'
+    }
+    */
+  })
 })()
 ```
 
