@@ -1,7 +1,7 @@
 {
   "name": "radio-station",
-  "version": "0.0.11",
-  "description": "A free radio station on node js with a simple setup and the ability to conduct live broadcasts on the site 🎙 📡",
+  "version": "0.0.12",
+  "description": "🎙 📡 A free radio station on node js with a simple setup and the ability to conduct live broadcasts on the site",
   "main": "src/index.js",
   "scripts": {
     "dev": "node dev/index.js",
