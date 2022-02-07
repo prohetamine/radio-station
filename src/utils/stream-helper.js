@@ -1,13 +1,17 @@
 const fs          = require('fs')
     , path        = require('path')
     , puppeteer   = require('puppeteer')
+    , chromium    = require('chrome-aws-lambda')
 
 const sfmediastream$v1  = fs.readFileSync(path.join(__dirname, '/sfmediastream@v1.js'), 'utf8')
     , socket$v3_0_5     = fs.readFileSync(path.join(__dirname, '/socket.io-3.0.5.js'), 'utf8')
     , noise             = require('./noise')
 
 const start = async ({ login, password, port, isLauncher, puppeteerLauncher }) => {
-  const browser = await puppeteer.launch(puppeteerLauncher)
+  const browser = await puppeteer.launch({
+    executablePath: await chromium.executablePath,
+    ...puppeteerLauncher
+  })
   const [page] = await browser.pages()
 
   await page.addScriptTag({ content: sfmediastream$v1 })

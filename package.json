@@ -36,6 +36,7 @@
     "base64-js": "^1.5.1",
     "cfonts": "^2.10.0",
     "child-process-promise": "^2.2.1",
+    "chrome-aws-lambda": "^10.1.0",
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "ffmpeg-static": "^4.4.1",
