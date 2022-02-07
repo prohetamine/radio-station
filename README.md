@@ -53,9 +53,9 @@ I recommend looking at the examples of work right away before trying to use the 
 | port | number | 9933 | нет | внутренний системный порт используется также для подключения к лаунчеру |
 | login | text | /* random */ | нет | используется для авторизации в лаунчере |
 | password | text | /* random */ | нет | используется для авторизации в лаунчере |
-| isAutoStart | boolean | /* random */ | нет | отвечает за автоматический старт |
+| isAutoStart | boolean | false | нет | отвечает за автоматический старт |
 | puppeteerLauncher | object | { headless: true, args: ['--no-sandbox'] } | нет | объект лаунчера puppeteer |
-| debug | boolean | false | нет | включает режим отладки |
+| debug | boolean | true | нет | включает режим отладки |
 | mainPort | number | false | нет | выводит основной порт в консоль |
 
 ```javascript
@@ -102,6 +102,26 @@ const { create } = require('radio-station')
       onUse: [AsyncFunction: onUse],
     }
   */
+})()
+```
+
+#### <a name="stream">stream</a>
+
+Объект [stream](#stream) работает с эфиром, имеет функции [start](#start), [onStart](#onstart), [push](#push), [onPush](#onpush), [pop](#pop), [onPop](#onpop), [all](#streamall), [current](#current), [onUse](#onuse).
+
+#### <a name="start">start</a>
+
+Функция [track.start](#stream) запускает стрим если в [RadioStation](#radiostation) ```isAutoStart``` имеет значение ```false```, также имеет обработчик события загрузки [onStart](#onstart).
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const loadId = await radio.track.load('/path.mp3')
+
+  console.log(loadId) // de40e284351ed735b5c4a8cb73cc036a
 })()
 ```
 
