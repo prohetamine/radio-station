@@ -141,8 +141,83 @@ const { create } = require('radio-station')
 })()
 ```
 
+#### <a name="push">push</a>
 
+Функция [stream.push](#push) формирует очередь из треков добавляя трек в конец очереди, принимает ```id```, возвращает ```streamId``` загруженного трека или ```null``` как ошибку, также имеет обработчик события [stream.onPush](#onpush).
 
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const loadId = await radio.track.load('path.mp3')
+
+  const streamId = await radio.stream.push(loadId)
+
+  console.log(streamId) // 36ed07fd2438271197e37420b582c6f575608bcb1580ff21675311e1913a035e
+})()
+```
+
+#### <a name="onpush">onPush</a>
+
+Функция [stream.onPush](#stream) обрабатывает любое добавление трека в очередь, даже с учетом добавления через лаунчер, первым параметром принимает callback, в callback передает ```streamId``` загруженного трека или ```null``` как ошибку.
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  radio.track.onPush(streamId => {
+    console.log(streamId)
+  })
+
+  const loadId = await radio.track.load('path.mp3')
+  const streamId = await radio.track.push(loadId)
+
+  radio.stream.push(streamId)
+})()
+```
+
+#### <a name="pop">pop</a>
+
+Функция [stream.pop](#pop) удаляет трек из очереди, принимает ```streamId```, возвращает ```streamId``` удаленного трека или ```null``` как ошибку, также имеет обработчик события [stream.onPop](#onpop).
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const loadId = await radio.track.load('path.mp3')
+
+  const streamId = await radio.stream.push(loadId)
+  const popStreamId = await radio.stream.pop(streamId)
+
+  console.log(popStreamId) // 36ed07fd2438271197e37420b582c6f575608bcb1580ff21675311e1913a035e
+})()
+```
+
+#### <a name="onpop">onPop</a>
+
+Функция [stream.onPop](#stream) обрабатывает любое удаление трека из очереди, даже с учетом удаления через лаунчер, первым параметром принимает callback, в callback передает ```streamId``` загруженного трека или ```null``` как ошибку.
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  radio.track.onPop(streamId => {
+    console.log(streamId)
+  })
+
+  const loadId = await radio.track.load('path.mp3')
+  const streamId = await radio.track.push(loadId)
+  radio.stream.pop(streamId)
+})()
+```
 
 #### <a name="track">track</a>
 

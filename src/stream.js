@@ -27,6 +27,10 @@ const Stream = ({ isAutoStart, debug }) => {
   const push = async id => {
     if (id) {
       const track = onFind(id)[0]
+      if (!track) {
+        onPush(null)
+        return null
+      }
       const streamId = hash()
       trackIds.push({ ...track, streamId, type: 'queue' })
       onPush(streamId)
@@ -41,8 +45,9 @@ const Stream = ({ isAutoStart, debug }) => {
     const trackIdsFilter = trackIds.filter(({ streamId }, _index) => !(streamId === id && _index > index))
     const isDelete = JSON.stringify(trackIds) !== JSON.stringify(trackIdsFilter)
     trackIds = trackIdsFilter
-    onPop(id)
-    return isDelete
+    const result = isDelete ? id : null
+    onPop(result)
+    return result
   }
 
   const stream = socket => {

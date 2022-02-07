@@ -23,6 +23,9 @@ RadioStation.create({
   password: 'hackme',
 
 }).then(async radio => {
+  const p1ushId = await radio.stream.pop('222222')
+  console.log('--> radio.stream.pop', p1ushId)
+
   console.log('')
   console.log('---------- radio ----------')
 
