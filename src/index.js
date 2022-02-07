@@ -307,7 +307,7 @@ const create = async (
       const siteHost = `http://${myIP()}:${mainPort ? mainPort : '%yourport%'}`
           , launcherHost = `${myIP()}:${port}`
 
-      const messageLauncher = isLauncher ? `Auth:${' '.repeat(43)}|host: ${launcherHost}${' '.repeat(39-launcherHost.length)}|login: ${login}${' '.repeat(39-login.length)}|password: ${password}${' '.repeat(36-password.length)}||` : ''
+      const messageLauncher = isLauncher ? `Auth:${' '.repeat(43)}|host: ${launcherHost}${' '.repeat(39-launcherHost.length)}|login: ${login}${' '.repeat(38-login.length)}|password: ${password}${' '.repeat(35-password.length)}||` : ''
 
       CFonts.say(`${messageLauncher}Site url: ${siteHost}${' '.repeat(38-siteHost.length)}`, {
         font: 'console',
