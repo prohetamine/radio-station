@@ -17,7 +17,6 @@ RadioStation.create({
   pathWorkDir: path.join(__dirname, 'tracks-data-folder'), // optional
   isLauncher: true, // optional
   //debug: false, // optional
-  //dev: true, // optional
   isAutoStart: false, // optional
   mainPort: port,
   login: 'localhost',

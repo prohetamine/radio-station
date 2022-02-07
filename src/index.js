@@ -28,7 +28,6 @@ const defaultArgs = {
       args: ['--no-sandbox']
     },
     debug: false,
-    dev: true,
     mainPort: null
   },
   onUse: {
@@ -47,7 +46,6 @@ const create = async (
     isAutoStart = defaultArgs.create.isAutoStart,
     puppeteerLauncher = defaultArgs.create.puppeteerLauncher,
     debug = defaultArgs.create.debug,
-    dev = defaultArgs.create.dev,
     mainPort = defaultArgs.create.mainPort
   } = defaultArgs.create
 ) => {
@@ -56,7 +54,7 @@ const create = async (
       , io = IO(server)
 
   if (isLauncher) {
-    dev && app.use(cors())
+    app.use(cors())
 
     app.get('/auth', (req, res) => {
       const {
