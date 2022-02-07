@@ -42,21 +42,21 @@ I recommend looking at the examples of work right away before trying to use the 
 
 #### <a name="radiostation">RadioStation</a>
 
-Объект [RadioStation](#radiostation) имеет только один метод create который является промисом и возвращает объекты: [track](#track), [stream](#stream) и функции: [addListener](#classic), [picture](#classic), [info](#classic), [onUse](#classic).
+The Object [RadioStation](#radiostation) has only one method to create which is a craft and returns objects: [track](#track), [stream](#stream) and functions: [addListener](#classic), [picture](#classic), [info](#classic), [onUse](#classic).
 
 ##### object
 
-| ключ | значение | значение по-умолчанию | обязательный | информация |
+| key | value | default value | mandatory | information |
 | ------ | ------ | ------ | ------ | ------ |
-| pathWorkDir | text | ./station | нет | рабочая папка с треками и другими системными записями |
-| isLauncher | boolean | true | нет | активация лаунчера |
-| port | number | 9933 | нет | внутренний системный порт используется также для подключения к лаунчеру |
-| login | text | /* random */ | нет | используется для авторизации в лаунчере |
-| password | text | /* random */ | нет | используется для авторизации в лаунчере |
-| isAutoStart | boolean | false | нет | отвечает за автоматический старт |
-| puppeteerLauncher | object | { headless: true, args: ['--no-sandbox'] } | нет | объект лаунчера puppeteer |
-| debug | boolean | true | нет | включает режим отладки |
-| mainPort | number | false | нет | выводит основной порт в консоль |
+| patchWorkDir | text | ./station | no | working folder with the tracks and other system records |
+| isLauncher | boolean | true | no | launcher activation |
+| port | number | 9933 | no | the internal system port is also used to connect to the launcher |
+| login | text | /* random */ | none | used for authorization in the launcher |
+| password | text | /* random */ / none | used for authorization in the launcher |
+| isAutoStart | boolean | false | none | responsible for automatic start |
+| puppeteerLauncher | object | { headless: true, args: ['--no-sandbox'] } | no | puppeteer launcher object |
+| debug | boolean | true | none | enables debugging mode |
+| mainPort | number | false | no | outputs the main port to the console |
 
 ```javascript
 const { create } = require('radio-station')
@@ -107,7 +107,7 @@ const { create } = require('radio-station')
 
 #### <a name="classic">classic</a>
 
-Полный рабочий пример [node-web-radio](https://github.com/prohetamine/node-web-radio)
+Full working example [node-web-radio](https://github.com/prohetamine/node-web-radio)
 
 ```javascript
 ;(async () => {
@@ -139,11 +139,11 @@ const { create } = require('radio-station')
 
 #### <a name="track">track</a>
 
-Объект [track](#radiostation) работает с файловой системой, имеет функции [load](#load), [loads](#loads), [onLoad](#onload), [unload](#unload), [onUnload](#onunload), [all](#tracksall), [find](#find), [info](#info), [picture](#picture).
+The object [track](#radiostation) works with the file system, has functions [load](#load), [loads](#loads), [onLoad](#onload), [unload](#unload), [onUnload](#onunload), [all](#tracksall), [find](#find), [info](#info), [picture](#picture).
 
 #### <a name="load">load</a>
 
-Функция [track.load](#track) загружает трек в файловую систему радио станции, принимает путь файла с расширением ```.mp3```, является промисом и возвращает ```id``` загруженного трека или ```null``` как ошибку, также имеет обработчик события загрузки [track.onLoad](#onload).
+The function [track.load](#track) loads a track into the radio station's file system, accepts the file path with the extension ```.mp3```, is a promise and returns the ```id``` of the loaded track or ```null``` as an error, also has a handler for the [track.onLoad](#onload) loading event.
 
 ```javascript
 const { create } = require('radio-station')
@@ -159,7 +159,7 @@ const { create } = require('radio-station')
 
 #### <a name="loads">loads</a>
 
-Функция [track.loads](#track) загружает все треки из папки в файловую систему радио станции, принимает путь к папке с файлами с расширениями ```.mp3```, является промисом и возвращает массив элементов ```id``` загруженного трека или ```null``` как ошибку, также имеет обработчик события загрузки [track.onLoad](#onload).
+The function [track.loads](#track) loads all tracks from a folder into the radio station's file system, accepts the path to a folder with files with the extensions ```.mp3```, is a promise and returns an array of elements of the ```id``` of the downloaded track or ```null``` as an error, also has a handler for the download event [track.onLoad](#onload).
 
 ```javascript
 const { create } = require('radio-station')
@@ -183,7 +183,7 @@ const { create } = require('radio-station')
 
 #### <a name="onload">onLoad</a>
 
-Функция [track.onLoad](#track) обрабатывает любую загрузку трека в файловую систему, даже с учетом загрузки через лаунчер, первым параметром принимает callback, в callback передает ```id``` загруженного трека или ```null``` как ошибку.
+The function [track.onLoad](#track) processes any download of a track to the file system, even taking into account the download via the launcher, takes a callback as the first parameter, passes the ```id``` of the downloaded track or ```null``` to the callback as an error.
 
 ```javascript
 const { create } = require('radio-station')
@@ -193,7 +193,7 @@ const { create } = require('radio-station')
 
   radio.track.onLoad(id => {
     const name = radio.track.find(id).name
-    console.log(name, id) // название трека и id
+    console.log(name, id) // track name and id
   })
 
   radio.track.load('/path.mp3')
@@ -202,7 +202,7 @@ const { create } = require('radio-station')
 
 #### <a name="unload">unload</a>
 
-Функция [track.unload](#track) удаляет трек из файловой системы, принимает параметром ```id``` удаляемого трека, всегда возвращает ```id``` удаленного трека или ```null``` как ошибку, также имеет обработчик события загрузки [track.onUnload](#onunload).
+The function [track.unload](#track) deletes a track from the file system, accepts the ```id``` parameter of the track being deleted, always returns the ```id``` of the deleted track or "null" as an error, also has a handler for the loading event [track.onUnload](#onunload).
 
 ```javascript
 const { create } = require('radio-station')
@@ -222,7 +222,7 @@ const { create } = require('radio-station')
 
 #### <a name="onunload">onUnload</a>
 
-Функция [track.onUnload](#track) обрабатывает любое удаление трека из файловой системы, даже с учетом загрузки через лаунчер, первым параметром принимает callback, в callback передает ```id``` удаленного трека или ```null``` как ошибку.
+The function [track.onUnload](#track) handles any deletion of a track from the file system, even taking into account the download via the launcher, takes a callback as the first parameter, passes the ```id``` of the deleted track or ```null``` to the callback as an error.
 
 ```javascript
 const { create } = require('radio-station')
@@ -231,7 +231,7 @@ const { create } = require('radio-station')
   const radio = await create({ /* ... */ })
 
   radio.track.onUnload(id => {
-    console.log(id) // id трека de40e284351ed735b5c4a8cb73cc036a
+    console.log(id) // id track de40e284351ed735b5c4a8cb73cc036a
   })
 
   const loadId = await radio.track.load('/path.mp3')
@@ -244,7 +244,7 @@ const { create } = require('radio-station')
 
 #### <a name="tracksall">all</a>
 
-Функция [track.all](#track) возвращает информацию о всех треках в файловой системе в виде массива с объектами.
+The function [track.all](#track) returns information about all tracks in the file system as an array with objects.
 
 ```javascript
 const { create } = require('radio-station')
@@ -282,7 +282,7 @@ const { create } = require('radio-station')
 
 #### <a name="find">find</a>
 
-Функция [track.find](#track) возвращает системную информацию треке в файловой системе, в виде объекта или ```null```.
+The function [track.find](#track) returns the system information of the track in the file system, in the form of an object or ```null```.
 
 ```javascript
 const { create } = require('radio-station')
@@ -309,7 +309,7 @@ const { create } = require('radio-station')
 
 #### <a name="info">info</a>
 
-Функция [track.info](#track) возвращает полную информацию о файле, принимает параметром ```id```, возвращает объект или ```null```.
+Function [track.info](#track) returns complete information about the file, takes the parameter ```id```, returns an object or ```null```.
 
 ```javascript
 const { create } = require('radio-station')
@@ -359,7 +359,7 @@ const { create } = require('radio-station')
 
 #### <a name="picture">picture</a>
 
-Функция [track.picture](#track) принимает параметром ```id```, возвращает объект или ```null```.
+The function [track.picture](#track) takes the parameter ```id```, returns an object or ```null```.
 
 ```javascript
 const { create } = require('radio-station')
@@ -385,11 +385,11 @@ const { create } = require('radio-station')
 
 #### <a name="stream">stream</a>
 
-Объект [stream](#radiostation) работает с эфиром, имеет функции [start](#start), [onStart](#onstart), [push](#push), [onPush](#onpush), [pop](#pop), [onPop](#onpop), [all](#streamall), [current](#current), [onUse](#onuse).
+Object [stream](#radiostation) works with ether, has functions [start](#start), [onStart](#onstart), [push](#push), [onPush](#onpush), [pop](#pop), [onPop](#onpop), [all](#streamall), [current](#current), [onUse](#onuse).
 
 #### <a name="start">start</a>
 
-Функция [stream.start](#stream) запускает стрим если в [RadioStation](#radiostation) ```isAutoStart``` имеет значение ```false```, возвращает ```true``` или ```false``` как ошибку, также имеет обработчик события загрузки [stream.onStart](#onstart) который срабатывает независимо от вызова функции [stream.start](#stream).
+The function [stream.start](#stream) starts the stream if in [RadioStation](#radiostation) ```isAutoStart``` has the value ```false```, returns ```true``` or ```false``` as an error, also has a load event handler [stream.onStart](#onstart) which is triggered regardless of the function call [stream.start](#stream).
 
 ```javascript
 const { create } = require('radio-station')
@@ -405,7 +405,7 @@ const { create } = require('radio-station')
 
 #### <a name="onstart">onStart</a>
 
-Функция [stream.onStart](#stream) обрабатывает запуск трансляции, принимает параметром callback.
+The function [stream.onStart](#stream) handles the start of the broadcast, accepts the callback parameter.
 
 ```javascript
 const { create } = require('radio-station')
@@ -421,7 +421,7 @@ const { create } = require('radio-station')
 
 #### <a name="push">push</a>
 
-Функция [stream.push](#push) формирует очередь из треков добавляя трек в конец очереди, принимает ```id```, возвращает ```streamId``` загруженного трека или ```null``` как ошибку, также имеет обработчик события [stream.onPush](#onpush).
+The function [stream.push](#push) forms a queue of tracks by adding a track to the end of the queue, accepts ```id```, returns ```streamId``` of the uploaded track or ```null``` as an error, also has an event handler [stream.onPush](#onpush).
 
 ```javascript
 const { create } = require('radio-station')
@@ -438,7 +438,7 @@ const { create } = require('radio-station')
 
 #### <a name="onpush">onPush</a>
 
-Функция [stream.onPush](#stream) обрабатывает любое добавление трека в очередь, даже с учетом добавления через лаунчер, первым параметром принимает callback, в callback передает ```streamId``` загруженного трека или ```null``` как ошибку.
+The function [stream.onPush](#stream) processes any addition of a track to the queue, even taking into account the addition via the launcher, takes a callback as the first parameter, passes the ```streamId``` of the uploaded track or ```null``` to the callback as an error.
 
 ```javascript
 const { create } = require('radio-station')
@@ -459,7 +459,7 @@ const { create } = require('radio-station')
 
 #### <a name="pop">pop</a>
 
-Функция [stream.pop](#pop) удаляет трек из очереди, принимает ```streamId```, возвращает ```streamId``` удаленного трека или ```null``` как ошибку, также имеет обработчик события [stream.onPop](#onpop).
+The function [stream.pop](#pop) deletes a track from the queue, accepts ```streamId```, returns ```streamId``` of the deleted track or ```null``` as an error, also has an event handler [stream.onPop](#onpop).
 
 ```javascript
 const { create } = require('radio-station')
@@ -478,7 +478,7 @@ const { create } = require('radio-station')
 
 #### <a name="onpop">onPop</a>
 
-Функция [stream.onPop](#stream) обрабатывает любое удаление трека из очереди, даже с учетом удаления через лаунчер, первым параметром принимает callback, в callback передает ```streamId``` загруженного трека или ```null``` как ошибку.
+The function [stream.onPop](#stream) handles any deletion of a track from the queue, even taking into account deletion via the launcher, accepts callback as the first parameter, passes ```streamId``` of the uploaded track or ```null``` to callback as an error.
 
 ```javascript
 const { create } = require('radio-station')
@@ -498,13 +498,13 @@ const { create } = require('radio-station')
 
 #### <a name="streamall">all</a>
 
-Функция [stream.all](#stream) возвращает информацию о всех треках в очереди виде массива с объектами. Имеет три типа треков. ```random```, ```queue```, ```error```.
+The function [stream.all](#stream) returns information about all tracks in the queue as an array with objects. It has three types of tracks. ```random```, ```queue```, ```error```.
 
-| тип | информация о типе |
+| type | type information |
 | ------ | ------ |
-| random | трек подбирается случайно, динамический тип трека, появляется в момент отсутствия очереди |
-| queue | трек находящийся в очереди |
-| error | трек удален или поврежден |
+| random | the track is selected randomly, the dynamic type of track appears when there is no queue |
+| queue | track in the queue |
+| error | track deleted or damaged |
 
 ```javascript
 const { create } = require('radio-station')
@@ -547,7 +547,7 @@ const { create } = require('radio-station')
 
 #### <a name="current">current</a>
 
-Функция [current](#current) возвращает информацию о текущем треке в эфире в виде объекта или ```null``` как ошибка, можно считать обработчиком события [stream.onUse](#onuse).
+The function [current](#current) returns information about the current track on the air in the form of an object or ```null``` as an error, can be considered an event handler [stream.onUse](#onuse).
 
 ```javascript
 const { create } = require('radio-station')
@@ -573,7 +573,7 @@ const { create } = require('radio-station')
 
 #### <a name="onuse">onUse</a>
 
-Функция [stream.onUse](#stream) обрабатывает обновление текущего трека, первым параметром принимает callback, в callback передает первым параметром позицию в очереди, вторым информацию о треке.
+The function [stream.onUse](#stream) processes the update of the current track, accepts the callback with the first parameter, passes the position in the queue to the callback with the first parameter, and the track information with the second.
 
 ```javascript
 const { create } = require('radio-station')
