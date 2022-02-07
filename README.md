@@ -125,9 +125,9 @@ const { create } = require('radio-station')
 })()
 ```
 
-#### <a name="push">push</a>
+#### <a name="onstart">onStart</a>
 
-Функция [stream.start](#stream) запускает стрим если в [RadioStation](#radiostation) ```isAutoStart``` имеет значение ```false```, также имеет обработчик события загрузки [stream.onStart](#onstart) который срабатывает независимо от вызова функции [stream.start](#stream).
+Функция [stream.onStart](#stream) обрабатывает запуск трансляции, принимает параметром callback.
 
 ```javascript
 const { create } = require('radio-station')
@@ -135,11 +135,12 @@ const { create } = require('radio-station')
 ;(async () => {
   const radio = await create({ /* ... */ })
 
-  const loadId = await radio.track.load('/path.mp3')
-
-  console.log(loadId) // de40e284351ed735b5c4a8cb73cc036a
+  radio.track.onStart(() => {
+    console.log('start stream!')
+  })
 })()
 ```
+
 
 
 
