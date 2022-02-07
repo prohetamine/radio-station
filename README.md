@@ -111,7 +111,23 @@ const { create } = require('radio-station')
 
 #### <a name="start">start</a>
 
-Функция [track.start](#stream) запускает стрим если в [RadioStation](#radiostation) ```isAutoStart``` имеет значение ```false```, также имеет обработчик события загрузки [onStart](#onstart).
+Функция [stream.start](#stream) запускает стрим если в [RadioStation](#radiostation) ```isAutoStart``` имеет значение ```false```, возвращает ```true``` или ```false``` как ошибку, также имеет обработчик события загрузки [stream.onStart](#onstart) который срабатывает независимо от вызова функции [stream.start](#stream).
+
+```javascript
+const { create } = require('radio-station')
+
+;(async () => {
+  const radio = await create({ /* ... */ })
+
+  const isStart = radio.stream.start()
+  await new Promise(radio.stream.onStart)
+  console.log(isStart) // true
+})()
+```
+
+#### <a name="push">push</a>
+
+Функция [stream.start](#stream) запускает стрим если в [RadioStation](#radiostation) ```isAutoStart``` имеет значение ```false```, также имеет обработчик события загрузки [stream.onStart](#onstart) который срабатывает независимо от вызова функции [stream.start](#stream).
 
 ```javascript
 const { create } = require('radio-station')
@@ -125,13 +141,15 @@ const { create } = require('radio-station')
 })()
 ```
 
+
+
 #### <a name="track">track</a>
 
 Объект [track](#track) работает с файловой системой, имеет функции [load](#load), [loads](#loads), [onLoad](#onload), [unload](#unload), [onUnload](#onunload), [all](#tracksall), [find](#find), [info](#info), [picture](#picture).
 
 #### <a name="load">load</a>
 
-Функция [track.load](#track) загружает трек в файловую систему радио станции, принимает путь файла с расширением ```.mp3```, является промисом и возвращает ```id``` загруженного трека или ```null``` как ошибку, также имеет обработчик события загрузки [onLoad](#onload).
+Функция [track.load](#track) загружает трек в файловую систему радио станции, принимает путь файла с расширением ```.mp3```, является промисом и возвращает ```id``` загруженного трека или ```null``` как ошибку, также имеет обработчик события загрузки [track.onLoad](#onload).
 
 ```javascript
 const { create } = require('radio-station')
@@ -147,7 +165,7 @@ const { create } = require('radio-station')
 
 #### <a name="loads">loads</a>
 
-Функция [track.loads](#track) загружает все треки из папки в файловую систему радио станции, принимает путь к папке с файлами с расширениями ```.mp3```, является промисом и возвращает массив элементов ```id``` загруженного трека или ```null``` как ошибку, также имеет обработчик события загрузки [onLoad](#onload).
+Функция [track.loads](#track) загружает все треки из папки в файловую систему радио станции, принимает путь к папке с файлами с расширениями ```.mp3```, является промисом и возвращает массив элементов ```id``` загруженного трека или ```null``` как ошибку, также имеет обработчик события загрузки [track.onLoad](#onload).
 
 ```javascript
 const { create } = require('radio-station')
@@ -190,7 +208,7 @@ const { create } = require('radio-station')
 
 #### <a name="unload">unload</a>
 
-Функция [track.unload](#track) удаляет трек из файловой системы, принимает параметром ```id``` удаляемого трека, всегда возвращает ```id``` удаленного трека или ```null``` как ошибку, также имеет обработчик события загрузки [onUnload](#onunload).
+Функция [track.unload](#track) удаляет трек из файловой системы, принимает параметром ```id``` удаляемого трека, всегда возвращает ```id``` удаленного трека или ```null``` как ошибку, также имеет обработчик события загрузки [track.onUnload](#onunload).
 
 ```javascript
 const { create } = require('radio-station')
