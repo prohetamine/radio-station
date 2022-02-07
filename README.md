@@ -37,7 +37,7 @@ In addition, you should also install [ffmpeg](https://ffmpeg.org/download.html) 
 Connecting the module
 
 ```sh
-const TempMailFuck = require('temp-mail-fuck')
+const RadioStation = require('radio-station')
 ```
 
 I recommend looking at the examples of work right away before trying to use the module yourself. Examples of how to launch your radio station without a launcher and with a launcher can be found on my github repositories [node-web-radio](https://github.com/prohetamine/node-web-radio) and [launcher-web-radio](https://github.com/prohetamine/launcher-web-radio), also note that I supply options much simpler, in the form of docker, which are very easy to run and use [docker-node-web-radio](https://github.com/prohetamine/docker-node-web-radio) and [launcher-web-radio](https://github.com/prohetamine/docker-launcher-web-radio)
