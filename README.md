@@ -51,62 +51,26 @@ I recommend looking at the examples of work right away before trying to use the 
 | pathWorkDir | text | ./station | нет | рабочая папка с треками и другими системными записями |
 | isLauncher | boolean | true | нет | активация лаунчера |
 | port | number | 9933 | нет | внутренний системный порт используется также для подключения к лаунчеру |
-| login | text | *random* | нет | используется для авторизации в лаунчере |
-| password | text | *random* | нет | используется для авторизации в лаунчере |
-| isAutoStart | boolean | *random* | нет | отвечает за автоматический старт |
+| login | text | /* random */ | нет | используется для авторизации в лаунчере |
+| password | text | /* random */ | нет | используется для авторизации в лаунчере |
+| isAutoStart | boolean | /* random */ | нет | отвечает за автоматический старт |
 | puppeteerLauncher | object | { headless: true, args: ['--no-sandbox'] } | нет | объект лаунчера puppeteer |
 | debug | boolean | false | нет | включает режим отладки |
 | mainPort | number | false | нет | выводит основной порт в консоль |
 
 ```javascript
-const express         = require('express')
-    , app             = express()
-    , http            = require('http')
-    , path            = require('path')
-    , { Server }      = require('socket.io')
-    , RadioStation    = require('radio-station')
-
-const server = http.createServer(app)
-    , io = new Server(server)
-
-const port = 8080
+const { create } = require('radio-station')
 
 ;(async () => {
-  const radio = await RadioStation.create({
-    pathWorkDir: path.join(__dirname, 'tracks-data-folder'),
+  const radio = await create({
+    pathWorkDir: path.join(__dirname, 'station'),
     isLauncher: true,
-    mainPort: port,
-    login: 'localhost', // this optional, if you not define value, server generate auto
-    password: 'hackme' // this optional, if you not define value, server generate auto
-  })
-
-  app.get('/radio', (req, res) => {
-    radio.addListener(req, res)
-  })
-
-  io.on('connection', async socket => {
-    radio.onUse(info => {
-      socket.emit('onUse', info)
-    })
-  })
-
-  app.get('/picture', async (req, res) => {
-    radio.picture(req, res)
-  })
-
-  app.get('/info', async (req, res) => {
-    radio.info(req, res)
+    port: 9933,
+    login: `localhost_${hash().slice(0, 16)}`,
+    password: `hackme_${hash().slice(0, 16)}`,
   })
 })()
-
-app.use('/', express.static(__dirname+'/public'))
-
-server.listen(port, () => {
-  console.log(`open: http://localhost:${port}`)
-})
 ```
-
-
 
 ### Contacts
 
