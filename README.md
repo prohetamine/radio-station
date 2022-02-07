@@ -63,11 +63,11 @@ const { create } = require('radio-station')
 
 ;(async () => {
   const radio = await create({
-    pathWorkDir: path.join(__dirname, 'tracks-data-folder'),
+    pathWorkDir: `${__dirname}/tracks-data-folder`,
     isLauncher: true,
     port: 9933,
-    login: `localhost`,
-    password: `hackme`,
+    login: 'localhost',
+    password: 'hackme',
   })
 })()
 ```
