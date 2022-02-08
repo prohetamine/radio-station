@@ -52,7 +52,7 @@ The Object [RadioStation](#radiostation) has only one method to create which is 
 | isLauncher | boolean | true | no | launcher activation |
 | port | number | 9933 | no | the internal system port is also used to connect to the launcher |
 | login | text | /* random */ | none | used for authorization in the launcher |
-| password | text | /* random */ / none | used for authorization in the launcher |
+| password | text | /* random */ | none | used for authorization in the launcher |
 | isAutoStart | boolean | false | none | responsible for automatic start |
 | puppeteerLauncher | object | { headless: true, args: ['--no-sandbox'] } | no | puppeteer launcher object |
 | debug | boolean | true | none | enables debugging mode |
