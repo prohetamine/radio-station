@@ -1,6 +1,6 @@
 {
   "name": "radio-station",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "🎙 📡 A free radio station on node js with a simple setup and the ability to conduct live broadcasts on the site",
   "main": "src/index.js",
   "scripts": {
