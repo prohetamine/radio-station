@@ -4,29 +4,44 @@
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
   <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <link rel="icon" type="image/svg" href="/favicon.svg"/>
   <script src='/socket.io.js'></script>
   <title>Radio Station</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>This is an example, you should use the original documentation, use the API or this example to create your own radio page</h1>
-  <img id='picture' width='200' height='200' src='/default-picture.png' />
-  <br />
-  <audio controls disableRemotePlayback='true' x-webkit-airplay='allow' preload='none'>
-    <source src='/radio' type='audio/webm'></source>
-  </audio>
-  <div>
-    <span>Title: </span>
-    <span id='title'>Loading...</span>
-  </div>
-  <div>
-    <span>Album: </span>
-    <span id='album'>Loading...</span>
-  </div>
-  <div>
-    <span>Artist: </span>
-    <span id='artist'>Loading...</span>
-  </div>
-
+  <section class="promo">
+    <div class="container">
+      <div class="logo">
+        <img src="default-picture.png" id="picture" alt="logo">
+      </div>
+      <div class="info">
+        <div class="title">
+          <div class="title_num">Title:</div>
+          <div class="descr" id="title">Loading...</div>
+        </div>
+        <div class="artist">
+          <div class="title_num">Artist:</div>
+          <div class="descr" id="artist">Loading...</div>
+        </div>
+        <div class="album">
+          <div class="title_num">Album:</div>
+          <div class="descr" id="album">Loading...</div>
+        </div>
+     </div>
+     <div class="btn">
+       <button id='control'></button>
+     </div>
+     <audio hidden controls disableRemotePlayback='true' x-webkit-airplay='allow' preload='none'>
+       <source src='/radio' type='audio/webm'></source>
+     </audio>
+   </div>
+  </section>
+  <footer>
+   <div class="footer">
+    Imposer: <a href="https://github.com/DarkKingston" target="_blank">@darkkingston</a>
+   </div>
+  </footer>
   <script>
     const socket = io()
 
@@ -34,6 +49,18 @@
         , title = document.querySelector('#title')
         , artist = document.querySelector('#artist')
         , album = document.querySelector('#album')
+        , control = document.querySelector('#control')
+        , audio = document.querySelector('audio')
+
+    control.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play()
+        control.style.backgroundImage = `url('pause.svg')`
+      } else {
+        audio.pause()
+        control.style.backgroundImage = `url('play.svg')`
+      }
+    })
 
     picture.addEventListener('error', () => {
       picture.src = '/default-picture.png'

@@ -1,0 +1,111 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500;700;900&display=swap');
+
+body{
+    background: #F3DE57;
+}
+
+.promo{
+    position: relative;
+    height: 100vh;
+}
+
+.container{
+    position: absolute;
+    top: 177px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-basis: 320px;
+}
+
+.logo{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+.logo img{
+    max-width: 165px;
+    height: 165px;
+}
+
+.info{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 31px;
+}
+
+.title,.artist{
+    margin-bottom: 6px;
+}
+
+.title,.artist,.album{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info .title_num{
+    font-family: 'Roboto', sans-serif;
+    font-style: normal;
+    font-weight: 900;
+    font-size: 20px;
+    line-height: 23px;
+    width: 65px;
+    text-align:start;
+}
+
+.info .descr{
+    font-family: 'Roboto', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    max-width: 215px;
+    font-size: 20px;
+    line-height: 23px;
+    margin-left: 25px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn{
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 35px;
+}
+
+button{
+    margin: 0 auto;
+    border: none;
+    background: #2E2E2C;
+    border-radius: 100px;
+    width: 84px;
+    height: 84px;
+    cursor: pointer;
+    border-radius: 100%;
+    background-image: url('play.svg');
+}
+
+
+.footer{
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    font-family: 'Roboto', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+}
+
+a {
+  color: unset;
+  text-decoration: none;
+  cursor: pointer;
+}
