@@ -34,7 +34,7 @@ $ npm install https://github.com/prohetamine/radio-station
 
 Connecting the module
 
-```sh
+```javascript
 const RadioStation = require('radio-station')
 ```
 
@@ -57,6 +57,7 @@ The Object [RadioStation](#radiostation) has only one method to create which is 
 | puppeteerLauncher | object | { headless: true, args: ['--no-sandbox'] } | no | puppeteer launcher object |
 | debug | boolean | true | none | enables debugging mode |
 | mainPort | number | false | no | outputs the main port to the console |
+
 
 ```javascript
 const { create } = require('radio-station')

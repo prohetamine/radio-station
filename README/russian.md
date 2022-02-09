@@ -34,7 +34,7 @@ $ npm install https://github.com/prohetamine/radio-station
 
 Подключение модуля
 
-```sh
+```javascript
 const RadioStation = require('radio-station')
 ```
 
@@ -57,6 +57,7 @@ const RadioStation = require('radio-station')
 | puppeteerLauncher | object | { headless: true, args: ['--no-sandbox'] } | нет | объект лаунчера puppeteer |
 | debug | boolean | true | нет | включает режим отладки |
 | mainPort | number | false | нет | выводит основной порт в консоль |
+
 
 ```javascript
 const { create } = require('radio-station')
