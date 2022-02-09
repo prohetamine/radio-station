@@ -38,7 +38,7 @@ $ npm install https://github.com/prohetamine/radio-station
 const RadioStation = require('radio-station')
 ```
 
-Я рекомендую сразу ознакомиться с примерами работы, прежде чем пытаться использовать модуль самостоятельно. Примеры того, как запустить вашу радиостанцию без лаунчера и с лаунчером, можно найти в моих репозиториях github [node-web-radio](https://github.com/prohetamine/node-web-radio) и [launcher-web-radio](https://github.com/prohetamine/launcher-web-radio), также обратите внимание, что я предоставляю гораздо более простые варианты в виде docker, которые очень просты в запуске и использовании [docker-node-web-radio](https://github.com/prohetamine/docker-node-web-radio) и [launcher-web-radio](https://github.com/prohetamine/docker-launcher-web-radio).
+Я рекомендую сразу ознакомиться с примерами работы, прежде чем пытаться использовать модуль самостоятельно. Примеры того, как запустить вашу радиостанцию без лаунчера и с лаунчером, можно найти в моих репозиториях github [node-web-radio](https://github.com/prohetamine/node-web-radio) и [launcher-web-radio](https://github.com/prohetamine/launcher-web-radio), также обратите внимание, что я предоставляю гораздо более простые варианты в виде docker, которые очень просты в запуске и использовании [docker-node-web-radio](https://github.com/prohetamine/docker-node-web-radio) и [launcher-web-radio](https://github.com/prohetamine/docker-launcher-web-radio). Вы должны использовать ```mp3``` файлы потому что они содержат мета данные необходимые для корректного отображения обратите на это внимание.
 
 #### <a name="radiostation">RadioStation</a>
 
